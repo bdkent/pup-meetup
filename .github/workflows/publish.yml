@@ -1,0 +1,62 @@
+name: Publish
+
+# Ingest the free feeds (+ Instagram if APIFY_TOKEN is set), build the static
+# site, and deploy it to GitHub Pages. Runs daily, on every push to main, and
+# on demand. This is the "provider-in-Actions" variant of the architecture
+# (brief §4 / open decision #2): all stages run in CI; no off-GitHub box, because
+# the scraping provider supplies the residential IP.
+
+on:
+  schedule:
+    - cron: "0 11 * * *" # daily ~11:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; let a newer run supersede an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # Persist the geocode cache across runs so we don't re-query Nominatim
+      # every build (politeness + speed). Unique key always saves; restore-keys
+      # pulls the most recent prior cache.
+      - uses: actions/cache@v4
+        with:
+          path: data/geocache.json
+          key: geocache-${{ github.run_id }}
+          restore-keys: |
+            geocache-
+
+      - name: Ingest feeds + build site
+        env:
+          # Optional: set this repo secret to enable Instagram ingestion.
+          # If unset, instagram sources are skipped and the free feeds still run.
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+      - id: deploy
+        uses: actions/deploy-pages@v4

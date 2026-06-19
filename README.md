@@ -55,6 +55,22 @@ fetcher is isolated in `src/adapters/apify-instagram.js` — swap it for another
 from captions is heuristic today (date parsing + keywords); a vision/LLM extractor for flyer
 images is a later step.
 
+## Deploying (GitHub Pages)
+
+Two workflows in `.github/workflows/`:
+
+- **ci.yml** — on every push/PR: `npm ci`, validate the catalog, run tests.
+- **publish.yml** — daily (and on push to `main`, or manual dispatch): ingest the feeds,
+  build the site, and deploy it to GitHub Pages.
+
+One-time setup after pushing to GitHub:
+
+1. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
+2. *(Optional)* **Settings → Secrets and variables → Actions** → add `APIFY_TOKEN` to enable
+   Instagram ingestion. Without it, `instagram` sources are skipped and the free feeds still run.
+
+The site rebuilds daily so upcoming events stay fresh; past events drop off automatically.
+
 ## Layout
 
 ```

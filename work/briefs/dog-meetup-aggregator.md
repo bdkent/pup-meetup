@@ -310,8 +310,9 @@ eliminates, that cost. Apify is mid-market, not overpriced.
 1. ~~**Event identity / recurrence model**~~ — **RESOLVED 2026-06-19** (see §5): occurrence is
    the atomic served unit; recurrence materialized to a 6-month horizon; identity prefers native
    source IDs, synthesized key = `hash(organizer_id + date)` with location as a mutable attribute.
-2. **Acquire footprint** — minimal (provider-in-Actions, fully GitHub-native) [recommended]
-   vs. monolithic worker (whole pipeline on one off-GitHub box; simpler bootstrap).
+2. ~~**Acquire footprint**~~ — **RESOLVED 2026-06-19**: going with **provider-in-Actions** (fully
+   GitHub-native). The `publish.yml`/`ci.yml` workflows embody it — all stages run in CI; the
+   scraping provider supplies the residential IP, so no off-GitHub box is needed.
 3. **Launch scope** — DC-only single metro (tighter, easier curation) vs. multi-metro from
    day one (more schema/UX work).
 4. **Provider choice** — start on Apify free tier (recommended) vs. RapidAPI/DIY.
@@ -341,8 +342,11 @@ eliminates, that cost. Apify is mid-market, not overpriced.
 5. ☐ **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
    Starter (or swap providers) once free-tier limits actually bite.
 
-**Not yet built:** GitHub Actions CI (Stage 1 acquire + Stage 2/3 interpret+publish); the
-`data/raw/` store + `data/state/` cursors (change-detection); the **LLM/vision extractor** for
+**CI authored (pending remote):** `.github/workflows/ci.yml` (test+validate) and `publish.yml`
+(scheduled ingest→build→Pages). Needs a GitHub remote + Pages set to "GitHub Actions" + optional
+`APIFY_TOKEN` secret to actually run.
+
+**Not yet built:** the `data/raw/` store + `data/state/` cursors (change-detection); the **LLM/vision extractor** for
 flyer-IMAGE posts (only caption-TEXT heuristic extraction exists today); a live `APIFY_TOKEN`;
 Facebook adapters (page/public-group); and the deferred refinements (series inference,
 venue-from-description extraction, cross-organizer dedup). Dependency note: `node-ical` (and now
