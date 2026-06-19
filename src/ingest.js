@@ -16,6 +16,7 @@ import { loadCatalog } from './catalog.js';
 import { fetchAndParseMeetupIcs } from './sources/meetup-ics.js';
 import { fetchAndExtractJsonLd } from './sources/jsonld.js';
 import { fetchAndParseRss } from './sources/rss.js';
+import { fetchAndExtractInstagram } from './sources/instagram.js';
 import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
@@ -29,6 +30,8 @@ const PARSERS = {
   eventbrite: (src, organizer) => fetchAndExtractJsonLd(src.url, { organizer, sourceType: 'eventbrite' }),
   // RSS/Atom feed of event pages (follows links to extract JSON-LD events).
   rss: async (src, organizer) => (await fetchAndParseRss(src.url, { organizer })).occurrences,
+  // Instagram via the Apify adapter (needs APIFY_TOKEN; skipped gracefully if unset).
+  instagram: (src, organizer) => fetchAndExtractInstagram(src.handle, { organizer }),
 };
 
 function safeFilename(id) {
@@ -62,13 +65,18 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
         }
         console.error(`${org.id}: ${occurrences.length} occurrence(s) from ${src.type}`);
       } catch (err) {
-        console.error(`${org.id}: ERROR (${src.type}) ${err.message}`);
+        if (err && err.code === 'NO_TOKEN') {
+          console.error(`${org.id}: skipped ${src.type} (no APIFY_TOKEN)`);
+          skipped++;
+        } else {
+          console.error(`${org.id}: ERROR (${src.type}) ${err.message}`);
+        }
       }
     }
   }
   await saveCache(geocachePath, geocache);
   console.error(`\nWrote ${written} occurrence file(s) to ${eventsDir}` +
-    (skipped ? ` (${skipped} source(s) skipped — parser not implemented)` : ''));
+    (skipped ? ` (${skipped} source(s) skipped — see notes above)` : ''));
   return { written, skipped };
 }
 

@@ -328,18 +328,26 @@ eliminates, that cost. Apify is mid-market, not overpriced.
    — *Done: `meetup_ics` + generic `ics` (`src/sources/meetup-ics.js`); Eventbrite via schema.org
      JSON-LD (`src/sources/jsonld.js`, validated live); RSS that follows item links → JSON-LD
      (`src/sources/rss.js`); geocoding/enrichment (`src/geocode.js`); ingest orchestrator.*
-3. ☐ **Add Instagram via Apify free tier** (official actor, in a GitHub Action), with the 3-tier
+3. ◑ **Add Instagram via Apify free tier** (official actor, in a GitHub Action), with the 3-tier
    change→classify→extract gate and geocoding.
+   — *Done (no token needed to build/test): Apify adapter behind the `handle → posts[]` interface
+     (`src/adapters/apify-instagram.js`); heuristic classifier (`src/extract/classify.js`) and
+     caption-text extractor with NL date parsing (`src/extract/extract-text.js`, synthesized
+     `hash(organizer+date)` ids, low-confidence → `review`); `instagram` source wired into ingest
+     with graceful no-token skip. Remaining: a live `APIFY_TOKEN`, the LLM/vision extractor for
+     flyer-IMAGE posts, and the `data/raw/`+`data/state/` store with change-detection cursors.*
 4. ✅ **Build the static site** with client-side breed/location search + Leaflet/OSM map.
    — *Done as a zero-dep generator (`site/`); rebuild via `npm run build`. (Astro optional later.)*
 5. ☐ **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
    Starter (or swap providers) once free-tier limits actually bite.
 
-**Not yet built:** GitHub Actions CI (Stage 1 acquire + Stage 2/3 interpret+publish), the
-`data/raw/` store + `data/state/` cursors, the classify→extract steps for IG/FB, and the
-deferred refinements (series inference, venue-from-description extraction, cross-organizer
-dedup). The `node-ical` dependency carries known transitive-dep vulnerabilities — review before
-production.
+**Not yet built:** GitHub Actions CI (Stage 1 acquire + Stage 2/3 interpret+publish); the
+`data/raw/` store + `data/state/` cursors (change-detection); the **LLM/vision extractor** for
+flyer-IMAGE posts (only caption-TEXT heuristic extraction exists today); a live `APIFY_TOKEN`;
+Facebook adapters (page/public-group); and the deferred refinements (series inference,
+venue-from-description extraction, cross-organizer dedup). Dependency note: `node-ical` (and now
+`chrono-node`/`fast-xml-parser`) — run `npm audit` and review transitive-dep vulnerabilities
+before production.
 
 ---
 

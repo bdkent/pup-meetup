@@ -40,7 +40,7 @@ mute a source without deleting it; add free-text `notes` for context.
 | `rss` | `url` (feed of event pages) | ✅ implemented (follows links → JSON-LD) |
 | `facebook_page` | `url` | planned (RSS bridge or scraper) |
 | `facebook_group` | `url` (public groups only) | planned (scraper) |
-| `instagram` | `handle` | planned (scraper) |
+| `instagram` | `handle` | ◑ adapter + classify/extract built; live fetch needs `APIFY_TOKEN` |
 
 ### Example
 

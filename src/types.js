@@ -58,4 +58,16 @@
  * @property {string} updated_at         ISO 8601.
  */
 
+/**
+ * Normalized post from a social source (the durable raw asset; see brief §4).
+ * @typedef {Object} RawPost
+ * @property {string} post_id
+ * @property {string|null} organizer_id
+ * @property {string} platform           e.g. 'instagram'
+ * @property {string|null} posted_at     ISO 8601
+ * @property {string} text               caption / body
+ * @property {string[]} image_urls
+ * @property {string|null} permalink
+ */
+
 export {};

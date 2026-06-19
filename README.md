@@ -40,6 +40,21 @@ npm run build:demo && open site/dist/index.html
 > Demo data lives in `site/seed.json` and is only included by `build:demo` (shown
 > with a banner). It never enters real builds.
 
+### Instagram (optional)
+
+Instagram ingestion uses [Apify](https://apify.com). Provide a token to enable it:
+
+```bash
+export APIFY_TOKEN=apify_api_xxx
+npm run ingest
+```
+
+Without `APIFY_TOKEN`, `instagram` sources are skipped and the free feeds still run. The
+fetcher is isolated in `src/adapters/apify-instagram.js` — swap it for another provider
+(RapidAPI, ScrapingDog, DIY) by matching the `handle → posts[]` signature. Event detection
+from captions is heuristic today (date parsing + keywords); a vision/LLM extractor for flyer
+images is a later step.
+
 ## Layout
 
 ```
