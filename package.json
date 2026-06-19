@@ -11,6 +11,8 @@
     "validate": "node src/catalog.js",
     "ingest": "node src/ingest.js",
     "ingest:meetup": "node src/sources/meetup-ics.js",
+    "build:site": "node site/build.js",
+    "build": "node src/ingest.js && node site/build.js",
     "test": "node --test"
   },
   "dependencies": {

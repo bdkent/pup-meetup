@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>pup-meetup — upcoming dog meetups</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    :root { --fg:#1c1c1e; --muted:#6b6b70; --line:#e6e6ea; --accent:#7c4dff; --bg:#fafafb; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      color:var(--fg); background:var(--bg); }
+    header { padding:18px 20px; border-bottom:1px solid var(--line); background:#fff; }
+    h1 { margin:0; font-size:20px; } h1 small { color:var(--muted); font-weight:400; font-size:14px; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .controls select, .controls input { padding:7px 10px; border:1px solid var(--line); border-radius:8px;
+      font-size:14px; background:#fff; }
+    .controls input { flex:1; min-width:160px; }
+    main { display:grid; grid-template-columns: 1fr 1fr; gap:0; height:calc(100vh - 122px); }
+    #map { height:100%; }
+    #list { overflow-y:auto; padding:16px; }
+    .count { color:var(--muted); font-size:13px; margin:0 0 12px; }
+    .card { border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; background:#fff; }
+    .card:hover { border-color:#d3d3da; }
+    .card h3 { margin:0 0 6px; font-size:16px; }
+    .card .when { font-weight:600; }
+    .card .meta { color:var(--muted); font-size:13px; margin-top:4px; }
+    .tags { margin-top:8px; }
+    .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px;
+      background:#f0ecff; color:var(--accent); margin-right:6px; }
+    .approx { color:var(--muted); font-style:italic; }
+    .empty { color:var(--muted); padding:24px 0; text-align:center; }
+    a { color:var(--accent); }
+    @media (max-width:760px){ main{ grid-template-columns:1fr; height:auto; } #map{ height:48vh; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐾 pup-meetup <small>— upcoming dog meetups</small></h1>
+    <div class="controls">
+      <select id="breed"><option value="all">All breeds</option></select>
+      <select id="metro"><option value="all">All locations</option></select>
+      <input id="q" type="search" placeholder="Search title, venue, organizer…" />
+    </div>
+  </header>
+  <main>
+    <section id="list"><p class="count" id="count"></p><div id="cards"></div></section>
+    <div id="map"></div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const EVENTS = __EVENTS_DATA__;
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+    function fmtDate(iso, tz) {
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit',
+          timeZone: tz || undefined,
+        }).format(new Date(iso));
+      } catch { return new Date(iso).toLocaleString(); }
+    }
+
+    // --- map ---
+    const map = L.map('map').setView([39.5, -98.35], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+    const markers = L.layerGroup().addTo(map);
+
+    // --- filter options ---
+    const breeds = [...new Set(EVENTS.flatMap((e) => e.breeds || []))].sort();
+    const metros = [...new Set(EVENTS.map((e) => e.metro).filter(Boolean))].sort();
+    for (const b of breeds) $('breed').insertAdjacentHTML('beforeend', `<option value="${esc(b)}">${esc(b)}</option>`);
+    for (const m of metros) $('metro').insertAdjacentHTML('beforeend', `<option value="${esc(m)}">${esc(m)}</option>`);
+
+    function applyFilters() {
+      const b = $('breed').value, m = $('metro').value, q = $('q').value.trim().toLowerCase();
+      const filtered = EVENTS.filter((e) =>
+        (b === 'all' || (e.breeds || []).includes(b)) &&
+        (m === 'all' || e.metro === m) &&
+        (!q || `${e.title} ${e.location_name || ''} ${e.organizer_name || ''}`.toLowerCase().includes(q)));
+      renderList(filtered);
+      renderMarkers(filtered);
+    }
+
+    function renderList(list) {
+      $('count').textContent = `${list.length} upcoming meetup${list.length === 1 ? '' : 's'}`;
+      if (!list.length) { $('cards').innerHTML = '<p class="empty">No meetups match your filters.</p>'; return; }
+      $('cards').innerHTML = list.map((e) => `
+        <article class="card">
+          <h3>${esc(e.title)}</h3>
+          <div class="when">${esc(fmtDate(e.start, e.timezone))}</div>
+          <div class="meta">${esc(e.location_name || 'Location TBD')}${e.approx ? ' <span class="approx">(approx.)</span>' : ''}
+            ${e.organizer_name ? ' · ' + esc(e.organizer_name) : ''}</div>
+          <div class="tags">${(e.breeds || []).map((b) => `<span class="tag">${esc(b)}</span>`).join('')}
+            ${e.metro ? `<span class="tag">${esc(e.metro)}</span>` : ''}</div>
+          ${e.source_url ? `<div class="meta"><a href="${esc(e.source_url)}" target="_blank" rel="noopener">View source ↗</a></div>` : ''}
+        </article>`).join('');
+    }
+
+    function renderMarkers(list) {
+      markers.clearLayers();
+      const pts = [];
+      for (const e of list) {
+        if (e.lat == null || e.lng == null) continue;
+        L.marker([e.lat, e.lng]).addTo(markers).bindPopup(
+          `<b>${esc(e.title)}</b><br>${esc(fmtDate(e.start, e.timezone))}<br>` +
+          `${esc(e.location_name || '')}${e.approx ? ' (approx.)' : ''}` +
+          (e.source_url ? `<br><a href="${esc(e.source_url)}" target="_blank" rel="noopener">source ↗</a>` : ''));
+        pts.push([e.lat, e.lng]);
+      }
+      if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 13 });
+    }
+
+    ['breed', 'metro', 'q'].forEach((id) => {
+      $(id).addEventListener(id === 'q' ? 'input' : 'change', applyFilters);
+    });
+    applyFilters();
+  </script>
+</body>
+</html>
