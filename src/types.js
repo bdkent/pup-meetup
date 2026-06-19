@@ -25,8 +25,9 @@
  * @typedef {Object} OccurrenceLocation
  * @property {string|null} name
  * @property {string|null} address
- * @property {number|null} lat   Filled by a later geocoding stage.
+ * @property {number|null} lat   Filled by the geocoding stage.
  * @property {number|null} lng
+ * @property {boolean} [approx]  true when coords are an organizer-area fallback, not the exact venue.
  */
 
 /**

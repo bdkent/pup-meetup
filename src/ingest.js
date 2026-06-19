@@ -14,8 +14,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadCatalog } from './catalog.js';
 import { fetchAndParseMeetupIcs } from './sources/meetup-ics.js';
+import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
+const GEOCACHE_PATH = fileURLToPath(new URL('../data/geocache.json', import.meta.url));
 
 const PARSERS = {
   meetup_ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
@@ -26,9 +28,10 @@ function safeFilename(id) {
   return id.replace(/[^a-zA-Z0-9._-]/g, '_') + '.json';
 }
 
-export async function runIngest({ eventsDir = EVENTS_DIR } = {}) {
+export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACHE_PATH } = {}) {
   const organizers = await loadCatalog();
   await mkdir(eventsDir, { recursive: true });
+  const geocache = await loadCache(geocachePath);
 
   let written = 0;
   let skipped = 0;
@@ -42,6 +45,7 @@ export async function runIngest({ eventsDir = EVENTS_DIR } = {}) {
       }
       try {
         const occurrences = await parser(src, org);
+        await enrichOccurrenceLocations(occurrences, { organizer: org, cache: geocache });
         for (const occ of occurrences) {
           await writeFile(
             join(eventsDir, safeFilename(occ.id)),
@@ -55,6 +59,7 @@ export async function runIngest({ eventsDir = EVENTS_DIR } = {}) {
       }
     }
   }
+  await saveCache(geocachePath, geocache);
   console.error(`\nWrote ${written} occurrence file(s) to ${eventsDir}` +
     (skipped ? ` (${skipped} source(s) skipped — parser not implemented)` : ''));
   return { written, skipped };
