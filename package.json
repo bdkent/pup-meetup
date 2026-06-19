@@ -1,0 +1,21 @@
+{
+  "name": "pup-meetup",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Aggregator for breed-specific dog meetups",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "validate": "node src/catalog.js",
+    "ingest": "node src/ingest.js",
+    "ingest:meetup": "node src/sources/meetup-ics.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "node-ical": "^0.18.0",
+    "yaml": "^2.5.1"
+  }
+}

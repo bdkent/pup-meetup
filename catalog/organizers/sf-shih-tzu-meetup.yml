@@ -1,0 +1,15 @@
+# Real organizer from 2026-06 recon. Meetup .ics feed is public and returns
+# future (incl. recurring) instances — the cleanest source type we have.
+id: sf-shih-tzu-meetup
+name: San Francisco Shih Tzu Meetup Group
+breeds:
+  - shih-tzu
+metro: san-francisco
+timezone: America/Los_Angeles
+home_geo:
+  lat: 37.7917
+  lng: -122.4377
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/san-francisco-shihtzu-meetup/events/ical/

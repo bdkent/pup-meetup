@@ -1,0 +1,15 @@
+# DC-area group (user's metro). Small/dormant as of 2026-06 recon (31 members,
+# no upcoming events), but kept as a free, zero-maintenance source. The real
+# community activity for this breed/metro lives on Instagram/Facebook — add
+# instagram / facebook_group sources here once those parsers land.
+id: dc-area-shih-tzu-playgroup
+name: DC Area Shih Tzu Playgroup
+breeds:
+  - shih-tzu
+metro: dc
+timezone: America/New_York
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/meetup-group-ecqwfstg/events/ical/
+    notes: Dormant at recon time; verify the group still exists before relying on it.

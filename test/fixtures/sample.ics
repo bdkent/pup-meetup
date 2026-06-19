@@ -1,0 +1,27 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Meetup//Meetup Events v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+DTSTAMP:20260101T000000Z
+UID:event-monthly@meetup.com
+SUMMARY:SF Shih Tzu Monthly Meetup
+DTSTART:20260124T193000Z
+DTEND:20260124T203000Z
+RRULE:FREQ=MONTHLY;BYDAY=4SA
+LOCATION:Alta Plaza Park\, Scott St & Jackson St\, San Francisco\, CA
+URL:https://www.meetup.com/san-francisco-shihtzu-meetup/events/monthly/
+DESCRIPTION:Monthly Shih Tzu meetup at the hilltop.
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20260101T000000Z
+UID:event-oneoff@meetup.com
+SUMMARY:Shih Tzu Costume Party
+DTSTART:20260512T180000Z
+DTEND:20260512T200000Z
+LOCATION:Dolores Park\, San Francisco\, CA
+URL:https://www.meetup.com/san-francisco-shihtzu-meetup/events/oneoff/
+DESCRIPTION:A special one-time costume party.
+END:VEVENT
+END:VCALENDAR

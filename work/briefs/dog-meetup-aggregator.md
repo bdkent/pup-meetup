@@ -67,6 +67,18 @@ We searched "Shih Tzu meetup" across platforms and fetched real pages to test vi
 - **Infrequency is a major advantage.** Even 1 event/month per organizer is a lot, so polling
   can be daily-or-weekly and heavily staggered → tiny volume, near-invisible, cheap.
 
+### Meetup `.ics` — implementation findings (2026-06-19, from the built parser)
+- Meetup emits **each recurrence as a separate VEVENT with its own UID** (no RRULE). So
+  occurrences arrive **pre-expanded with stable native ids** (`ics:{UID}`) — great for identity
+  — but with **no series grouping** (every instance gets `series_id: null`). Inferring a series
+  (cluster by organizer + title + time-of-day) is a possible later refinement; not needed for MVP.
+- The `.ics` **`LOCATION` field is often empty**; the venue is only in `DESCRIPTION`. So structured
+  location is NOT reliably available from Meetup → a later stage must extract the venue from the
+  description (heuristic/LLM) and/or geocode it; the map can fall back to the organizer's
+  `home_geo` when an occurrence has no coordinates.
+- (The parser still implements RRULE expansion + 6-month materialization for *generic* ICS/feeds
+  that DO use RRULE — Meetup just happens not to.)
+
 ---
 
 ## 4. Architecture

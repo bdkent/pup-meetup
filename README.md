@@ -1,0 +1,53 @@
+# pup-meetup
+
+Aggregator for breed-specific dog meetups scattered across Instagram, Facebook,
+Meetup, Eventbrite, and friends. Discover upcoming meetups by **breed** and
+**location**, with a map of what's coming up.
+
+Full design & architecture: [`work/briefs/dog-meetup-aggregator.md`](work/briefs/dog-meetup-aggregator.md).
+
+## Status
+
+Early scaffold. Implemented so far:
+
+- **Catalog** — hand-curated organizers as YAML (`catalog/organizers/`), validated
+  by a JSON Schema.
+- **Meetup `.ics` source** — parses an iCalendar feed into normalized
+  *occurrences* (one dated instance = one map pin), materializing recurring
+  events over a 6-month horizon. See `src/sources/meetup-ics.js`.
+
+## Quickstart
+
+```bash
+npm install
+
+npm run validate        # validate catalog/organizers/*.yml against the schema
+npm test                # run the parser unit tests (offline, fixture-based)
+
+# Try the Meetup parser against a live feed:
+npm run ingest:meetup -- https://www.meetup.com/san-francisco-shihtzu-meetup/events/ical/
+
+# Run the full (current) ingest: catalog -> data/events/*.json
+npm run ingest
+```
+
+## Layout
+
+```
+catalog/organizers/*.yml   human-curated organizers (the only hand-edited data)
+catalog/organizer.schema.json
+src/catalog.js             load + validate the catalog
+src/sources/meetup-ics.js  .ics -> occurrences
+src/ingest.js              orchestrator: catalog -> data/events/
+data/events/*.json         generated occurrences (one file per occurrence)
+test/                      unit tests + fixtures
+```
+
+## Data model (short version)
+
+An **occurrence** is the atomic unit: one dated, located instance. Recurring
+meetups are several occurrences sharing a `series_id`. Identity prefers a
+source's native id (`ics:{UID}`) and, for sources without one, a synthesized
+`hash(organizer_id + date)` — deliberately excluding location so venue
+corrections update an attribute instead of duplicating a pin. Full details in the
+design brief.
