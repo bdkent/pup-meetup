@@ -1,0 +1,72 @@
+[
+  {
+    "title": "Meridian Hill Park Shih Tzu Social",
+    "in_days": 3, "hour_utc": 15, "duration_min": 90,
+    "timezone": "America/New_York", "organizer_name": "DC Shih Tzu Crew", "metro": "dc",
+    "breeds": ["shih-tzu"], "lat": 38.9203, "lng": -77.0349,
+    "location_name": "Meridian Hill Park", "source_url": "https://example.com/dc-shihtzu"
+  },
+  {
+    "title": "Shaw Dog Park Shih Tzu Meetup",
+    "in_days": 17, "hour_utc": 14, "duration_min": 60,
+    "timezone": "America/New_York", "organizer_name": "DC Shih Tzu Crew", "metro": "dc",
+    "breeds": ["shih-tzu"], "lat": 38.9126, "lng": -77.0220,
+    "location_name": "Shaw Dog Park", "source_url": null
+  },
+  {
+    "title": "Capital Goldens Group Walk",
+    "in_days": 9, "hour_utc": 13, "duration_min": 120,
+    "timezone": "America/New_York", "organizer_name": "Capital Goldens", "metro": "dc",
+    "breeds": ["golden-retriever"], "lat": 38.8816, "lng": -76.9783,
+    "location_name": "Congressional Cemetery", "source_url": "https://example.com/capital-goldens"
+  },
+  {
+    "title": "DC Corgi Meetup at Yards Park",
+    "in_days": 24, "hour_utc": 16, "duration_min": 120,
+    "timezone": "America/New_York", "organizer_name": "DC Corgi Club", "metro": "dc",
+    "breeds": ["corgi"], "lat": 38.8743, "lng": -77.0010,
+    "location_name": "Yards Park", "source_url": null
+  },
+  {
+    "title": "NYC Shih Tzu Meetup — The Esplanade",
+    "in_days": 12, "hour_utc": 17, "duration_min": 90,
+    "timezone": "America/New_York", "organizer_name": "NYC Shih Tzu", "metro": "nyc",
+    "breeds": ["shih-tzu"], "lat": 40.7626, "lng": -73.9568,
+    "location_name": "East River Esplanade", "source_url": "https://example.com/nyc-shihtzu"
+  },
+  {
+    "title": "NYC Frenchie Fest",
+    "in_days": 20, "hour_utc": 16, "duration_min": 180,
+    "timezone": "America/New_York", "organizer_name": "Frenchies of NYC", "metro": "nyc",
+    "breeds": ["french-bulldog"], "lat": 40.7265, "lng": -73.9815,
+    "location_name": "Tompkins Square Park Dog Run", "source_url": null
+  },
+  {
+    "title": "SF Corgi Beach Day",
+    "in_days": 14, "hour_utc": 18, "duration_min": 180,
+    "timezone": "America/Los_Angeles", "organizer_name": "Bay Area Corgis", "metro": "san-francisco",
+    "breeds": ["corgi"], "lat": 37.7594, "lng": -122.5107,
+    "location_name": "Ocean Beach", "source_url": "https://example.com/bay-corgis"
+  },
+  {
+    "title": "Austin Wiener Dog Wednesdays",
+    "in_days": 6, "hour_utc": 23, "duration_min": 120,
+    "timezone": "America/Chicago", "organizer_name": "ATX Dachshunds", "metro": "austin",
+    "breeds": ["dachshund"], "lat": 30.2669, "lng": -97.7729,
+    "location_name": "Zilker Park", "source_url": null
+  },
+  {
+    "title": "Austin Dog Lovers Happy Hour (all breeds)",
+    "in_days": 28, "hour_utc": 23, "duration_min": 120,
+    "timezone": "America/Chicago", "organizer_name": "ATX Dog Lovers", "metro": "austin",
+    "breeds": ["all"], "lat": 30.3215, "lng": -97.7261,
+    "location_name": "Yard Bar", "source_url": "https://example.com/atx-dogs"
+  },
+  {
+    "title": "Boston Shih Tzu Stroll on the Common",
+    "in_days": 30, "hour_utc": 15, "duration_min": 90,
+    "timezone": "America/New_York", "organizer_name": "Boston Shih Tzu Group", "metro": "boston",
+    "breeds": ["shih-tzu"], "lat": 42.3550, "lng": -71.0656,
+    "location_name": "Boston Common", "source_url": null
+  }
+]

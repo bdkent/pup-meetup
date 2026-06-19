@@ -29,7 +29,16 @@ npm run ingest:meetup -- https://www.meetup.com/san-francisco-shihtzu-meetup/eve
 
 # Run the full (current) ingest: catalog -> data/events/*.json
 npm run ingest
+
+# Build the static site (ingest + generate site/dist/index.html):
+npm run build && open site/dist/index.html
+
+# Build with DEMO data (multiple breeds + metros) to exercise the search/filters:
+npm run build:demo && open site/dist/index.html
 ```
+
+> Demo data lives in `site/seed.json` and is only included by `build:demo` (shown
+> with a banner). It never enters real builds.
 
 ## Layout
 
