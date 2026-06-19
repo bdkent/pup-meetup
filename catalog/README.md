@@ -36,8 +36,8 @@ mute a source without deleting it; add free-text `notes` for context.
 |---|---|---|
 | `meetup_ics` | `url` (Meetup `…/events/ical/`) | ✅ implemented |
 | `ics` | `url` (any iCalendar feed) | ✅ implemented (reuses the `.ics` parser) |
-| `eventbrite` | `url` | planned |
-| `rss` | `url` (e.g. breed-club feed) | planned |
+| `eventbrite` | `url` (event or organizer page) | ✅ implemented (schema.org JSON-LD) |
+| `rss` | `url` (feed of event pages) | ✅ implemented (follows links → JSON-LD) |
 | `facebook_page` | `url` | planned (RSS bridge or scraper) |
 | `facebook_group` | `url` (public groups only) | planned (scraper) |
 | `instagram` | `handle` | planned (scraper) |

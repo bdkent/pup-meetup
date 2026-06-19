@@ -14,6 +14,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadCatalog } from './catalog.js';
 import { fetchAndParseMeetupIcs } from './sources/meetup-ics.js';
+import { fetchAndExtractJsonLd } from './sources/jsonld.js';
+import { fetchAndParseRss } from './sources/rss.js';
 import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
@@ -23,6 +25,10 @@ const PARSERS = {
   meetup_ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
   // Generic iCalendar feeds (city dog-calendars, breed clubs) — same parser.
   ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
+  // Eventbrite (and any page with schema.org Event JSON-LD).
+  eventbrite: (src, organizer) => fetchAndExtractJsonLd(src.url, { organizer, sourceType: 'eventbrite' }),
+  // RSS/Atom feed of event pages (follows links to extract JSON-LD events).
+  rss: async (src, organizer) => (await fetchAndParseRss(src.url, { organizer })).occurrences,
 };
 
 function safeFilename(id) {

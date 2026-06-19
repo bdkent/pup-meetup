@@ -323,10 +323,11 @@ eliminates, that cost. Apify is mid-market, not overpriced.
 1. ⏳ **Hand-curate ~15–25 DC-area organizers** centered on Instagram + public Facebook, plus any
    Meetup/Eventbrite/ICS that exist. Author as `catalog/organizers/*.yml`.
    — *Started: catalog format + JSON-Schema validator + 2 example organizers (SF, DC) shipped.*
-2. ◑ **Wire the free structured feeds first** (Meetup `.ics`, Eventbrite, breed-club RSS, city
+2. ✅ **Wire the free structured feeds first** (Meetup `.ics`, Eventbrite, breed-club RSS, city
    dog-calendars) — $0, no scraping, proves the site end-to-end.
-   — *Done: `meetup_ics` + generic `ics` parsers (`src/sources/meetup-ics.js`), geocoding/enrichment
-     (`src/geocode.js`), ingest orchestrator. Remaining: Eventbrite + RSS source types.*
+   — *Done: `meetup_ics` + generic `ics` (`src/sources/meetup-ics.js`); Eventbrite via schema.org
+     JSON-LD (`src/sources/jsonld.js`, validated live); RSS that follows item links → JSON-LD
+     (`src/sources/rss.js`); geocoding/enrichment (`src/geocode.js`); ingest orchestrator.*
 3. ☐ **Add Instagram via Apify free tier** (official actor, in a GitHub Action), with the 3-tier
    change→classify→extract gate and geocoding.
 4. ✅ **Build the static site** with client-side breed/location search + Leaflet/OSM map.
