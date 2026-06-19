@@ -35,7 +35,7 @@ mute a source without deleting it; add free-text `notes` for context.
 | `type` | Locator | Status |
 |---|---|---|
 | `meetup_ics` | `url` (Meetup `…/events/ical/`) | ✅ implemented |
-| `ics` | `url` (any iCalendar feed) | parser-compatible; not yet wired in ingest |
+| `ics` | `url` (any iCalendar feed) | ✅ implemented (reuses the `.ics` parser) |
 | `eventbrite` | `url` | planned |
 | `rss` | `url` (e.g. breed-club feed) | planned |
 | `facebook_page` | `url` | planned (RSS bridge or scraper) |

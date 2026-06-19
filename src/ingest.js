@@ -21,7 +21,8 @@ const GEOCACHE_PATH = fileURLToPath(new URL('../data/geocache.json', import.meta
 
 const PARSERS = {
   meetup_ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
-  // ics: same shape as meetup_ics — wire up when needed.
+  // Generic iCalendar feeds (city dog-calendars, breed clubs) — same parser.
+  ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
 };
 
 function safeFilename(id) {
