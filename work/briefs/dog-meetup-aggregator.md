@@ -320,16 +320,25 @@ eliminates, that cost. Apify is mid-market, not overpriced.
 
 ## 10. Recommended MVP path
 
-1. **Hand-curate ~15–25 DC-area organizers** centered on Instagram + public Facebook, plus any
+1. ⏳ **Hand-curate ~15–25 DC-area organizers** centered on Instagram + public Facebook, plus any
    Meetup/Eventbrite/ICS that exist. Author as `catalog/organizers/*.yml`.
-2. **Wire the free structured feeds first** (Meetup `.ics`, Eventbrite, breed-club RSS, city
+   — *Started: catalog format + JSON-Schema validator + 2 example organizers (SF, DC) shipped.*
+2. ◑ **Wire the free structured feeds first** (Meetup `.ics`, Eventbrite, breed-club RSS, city
    dog-calendars) — $0, no scraping, proves the site end-to-end.
-3. **Add Instagram via Apify free tier** (official actor, in a GitHub Action), with the 3-tier
+   — *Done: `meetup_ics` + generic `ics` parsers (`src/sources/meetup-ics.js`), geocoding/enrichment
+     (`src/geocode.js`), ingest orchestrator. Remaining: Eventbrite + RSS source types.*
+3. ☐ **Add Instagram via Apify free tier** (official actor, in a GitHub Action), with the 3-tier
    change→classify→extract gate and geocoding.
-4. **Build the static site** (Astro/Eleventy) with client-side breed/location search +
-   Leaflet/OSM map; rebuild on `data/events/` change.
-5. **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
+4. ✅ **Build the static site** with client-side breed/location search + Leaflet/OSM map.
+   — *Done as a zero-dep generator (`site/`); rebuild via `npm run build`. (Astro optional later.)*
+5. ☐ **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
    Starter (or swap providers) once free-tier limits actually bite.
+
+**Not yet built:** GitHub Actions CI (Stage 1 acquire + Stage 2/3 interpret+publish), the
+`data/raw/` store + `data/state/` cursors, the classify→extract steps for IG/FB, and the
+deferred refinements (series inference, venue-from-description extraction, cross-organizer
+dedup). The `node-ical` dependency carries known transitive-dep vulnerabilities — review before
+production.
 
 ---
 
