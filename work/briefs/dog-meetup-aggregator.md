@@ -118,7 +118,7 @@ fetch/cache images only at extraction time. Keeps the repo light.
 
 ---
 
-## 5. Data model (intentionally simple — 3 entities)
+## 5. Data model (intentionally simple)
 
 **Organizer** (catalog, human-written):
 ```
@@ -126,12 +126,18 @@ id, name, platform, handle/url, breeds[], metro, [home_geo], poll_interval
 ```
 One organizer may have multiple sources (IG + FB + Meetup .ics).
 
-**Event** (derived, bot-written):
+**Occurrence** (derived, bot-written — THE atomic served unit; 1 occurrence = 1 map pin):
 ```
-id, organizer_id, title, start, end?, recurrence?,
-location{ name, address, lat, lng }, breeds[],
-source{ post_url, image, raw_text, posted_at },
-confidence, status (published|review), extracted_at
+id, organizer_id, series_id?, recurrence_label?,
+title, start, end?,                          # title/start/end are MUTABLE attributes
+location{ name, address, lat, lng },         # MUTABLE attribute (see keying below)
+breeds[], sources[]{ post_url, image, raw_text, posted_at },
+confidence, status (published|review|past), extracted_at, updated_at
+```
+
+**Series** (tiny internal grouping, used during recurrence expansion — not served directly):
+```
+series_id, organizer_id, source, recurrence_rule, default_location, title
 ```
 
 **Raw post / poll state** (bot-written):
@@ -140,14 +146,41 @@ post_id, organizer_id, posted_at, text, image_urls[], permalink
 + per-organizer cursor: last_post_id, last_polled
 ```
 
-**The one subtle field — event identity / dedup key.** Organizers re-post reminders and
-flyers. Use a deterministic key so re-processing *updates* rather than duplicates:
-```
-event.id = hash(organizer_id + normalized_date + normalized_location)
-```
-Get this right and Stage 2 is fully idempotent (re-run over all raw → same events). Get it
-wrong → duplicate pins on the map. **OPEN QUESTION:** how to model recurring events — one
-event with many occurrences, vs. many rows? (see §9)
+### Recurring-event identity model (RESOLVED 2026-06-19)
+
+**The occurrence is the atomic unit; recurrence is materialized, not stored as a rule the UI
+interprets.** `data/events/` is a flat list of occurrences. A recurring meetup is just several
+occurrences sharing a `series_id`; the ingest step **expands** a recurrence rule into concrete
+occurrences over a rolling **6-month horizon** (one-offs pass through as a single occurrence).
+The website never evaluates an RRULE — the rule lives only in the tiny Series record used at
+expansion time.
+
+**Identity keying is source-dependent, and LOCATION IS NOT part of the key:**
+| Source | Occurrence `id` |
+|---|---|
+| Meetup / city `.ics` | `ics:{VEVENT UID}` (recurring series share a series UID) |
+| Eventbrite | `eb:{event id}` |
+| Breed-club RSS | `rss:{guid}` |
+| Instagram / Facebook | `syn:` + `hash(organizer_id + normalized_date)` (synthesized — posts have no native ID) |
+
+- **Prefer the source's native stable ID** (UID/guid/event-id) over hashing wherever it exists.
+- **Drop location from the synthesized key** → key on `organizer_id + date` (day granularity, in
+  the organizer's metro timezone). Rationale: venues get corrected (recon example: NYC meetup
+  moved Central Park → East River Esplanade); if location were in the key, the correction would
+  fork a new id and the stale pin would never die. Location/title/time are mutable attributes
+  updated by the latest authoritative source.
+
+**Upsert / merge precedence** (Stage 2 is idempotent; on id collision):
+- Field-level "most authoritative wins": structured source > higher confidence > more recent post.
+- Accumulate provenance in `sources[]`; bump `updated_at`.
+- **Unresolvable date → status `review`, never published** (unstable identity).
+
+**Accepted gap (deferred):** cross-organizer duplicates — the same real event posted by two
+accounts yields two occurrences (different `organizer_id`). Defer a later "merge near-duplicate
+occurrences by date + geo-proximity" pass; for MVP, two attributed listings is acceptable.
+
+**UX knock-on:** on the map, show only the **next 1–2 occurrences per `series_id`** (a 6-month
+monthly series = 6 stacked pins otherwise); full upcoming list on the series/detail view.
 
 ---
 
@@ -260,10 +293,11 @@ eliminates, that cost. Apify is mid-market, not overpriced.
 
 ---
 
-## 9. Open decisions (not yet made)
+## 9. Open decisions
 
-1. **Event identity / recurrence model** — one event with many occurrences vs. many rows?
-   Shapes the dedup key and the map/search behavior.
+1. ~~**Event identity / recurrence model**~~ — **RESOLVED 2026-06-19** (see §5): occurrence is
+   the atomic served unit; recurrence materialized to a 6-month horizon; identity prefers native
+   source IDs, synthesized key = `hash(organizer_id + date)` with location as a mutable attribute.
 2. **Acquire footprint** — minimal (provider-in-Actions, fully GitHub-native) [recommended]
    vs. monolithic worker (whole pipeline on one off-GitHub box; simpler bootstrap).
 3. **Launch scope** — DC-only single metro (tighter, easier curation) vs. multi-metro from
