@@ -6,5 +6,9 @@
   "scott st & jackson st, san francisco, ca": {
     "lat": 37.7919305,
     "lng": -122.4393983
+  },
+  "boston common, boston, ma": {
+    "lat": 42.35504,
+    "lng": -71.066071
   }
 }

@@ -178,5 +178,365 @@
     "venue": null,
     "address": null,
     "confidence": 0.95
+  },
+  "3358789573650624607": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3397927640311071341": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3405733912804681989": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3415087188050401097": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3421834682822213856": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3426775663724164234": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3436860309078718200": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3439919192881153480": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "3443294755830167973": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3645375505088713540": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3224520003425009820": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3224532353402124089": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3291379664168071286": {
+    "is_event": true,
+    "title": "Shih-TzuTines Meetup",
+    "date": "2024-02-11",
+    "time": "10:00",
+    "venue": "West Hollywood Small Dog Park",
+    "address": null,
+    "confidence": 0.95
+  },
+  "3837619455724274389": {
+    "is_event": true,
+    "title": "Los Angeles Shih Tzu Meetup",
+    "date": "2026-02-28",
+    "time": "14:30",
+    "venue": "Lantern Paw Festival Dog Cafe",
+    "address": "900 N Broadway, Los Angeles, CA",
+    "confidence": 0.95
+  },
+  "3893523083630359933": {
+    "is_event": true,
+    "title": "LA Shih Tzu Meetup",
+    "date": "2025-05-23",
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.7
+  },
+  "3897009816408028188": {
+    "is_event": true,
+    "title": "Los Angeles Shih Tzus Meetup",
+    "date": "2026-05-23",
+    "time": "17:00",
+    "venue": "Pawradise Park",
+    "address": "435 Molino St, Los Angeles, CA",
+    "confidence": 0.95
+  },
+  "3903862079885827425": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "3903864020496895580": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3903865582020420984": {
+    "is_event": true,
+    "title": "Los Angeles Shih Tzu meet up",
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.4
+  },
+  "3903867405671343136": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "2416453146828593514": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "2419416186969596616": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.1
+  },
+  "2429359538761478691": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "2432412257341548246": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
+  },
+  "2465021842479727064": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "2566227759270861967": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "2615620202394926458": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.1
+  },
+  "2649164078883716504": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3144809682283490213": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3144811899259625545": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3907255217579950540": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3909215129530398722": {
+    "is_event": true,
+    "title": "Shih Tzu Meetup — Long Island Edition",
+    "date": "2026-06-07",
+    "time": "13:00",
+    "venue": "Hempstead Lake State Park — McDonald Pond",
+    "address": "Eagle Ave entrance off Southern State Parkway, Parking Lot #3",
+    "confidence": 0.95
+  },
+  "3910198831792545052": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3912167248362868998": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3914623947687511025": {
+    "is_event": true,
+    "title": "NYC Shih Tzu Meetup",
+    "date": "2025-10-11",
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.75
+  },
+  "3916050659805706698": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3916641048426140288": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3918223430298182041": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3918752930118741674": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3921664977031214057": {
+    "is_event": true,
+    "title": "Land of the Ewoks: Boston Edition",
+    "date": "2026-09-13",
+    "time": "12:00",
+    "venue": "Boston Common",
+    "address": "Boston Common, Boston, MA",
+    "confidence": 0.95
   }
 }
