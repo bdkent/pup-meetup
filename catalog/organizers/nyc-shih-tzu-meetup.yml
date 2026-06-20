@@ -1,5 +1,7 @@
-# Real organizer from 2026-06 recon: an individual Instagram account that runs
-# large NYC Shih Tzu meetups (hundreds of dogs), announced via caption text.
+# NYC Shih Tzu Meetup — the dedicated organizer account (100+ attendees per event;
+# upcoming dates announced via posts/flyers). Corrected 2026-06-20 from
+# `masontheshihtzu1` (an individual dog account / participant) to the real
+# organizer handle `nycshihtzumeetup`, verified via web search.
 # Demonstrates the `instagram` source type. Ingest skips it unless APIFY_TOKEN is
 # set; with a token, posts are fetched -> classified -> extracted to occurrences.
 id: nyc-shih-tzu-meetup
@@ -14,4 +16,4 @@ home_geo:
 poll_interval: daily
 sources:
   - type: instagram
-    handle: masontheshihtzu1
+    handle: nycshihtzumeetup
