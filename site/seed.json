@@ -59,7 +59,7 @@
     "title": "Austin Dog Lovers Happy Hour (all breeds)",
     "in_days": 28, "hour_utc": 23, "duration_min": 120,
     "timezone": "America/Chicago", "organizer_name": "ATX Dog Lovers", "metro": "austin",
-    "breeds": ["all"], "lat": 30.3215, "lng": -97.7261,
+    "breeds": ["all-breeds"], "lat": 30.3215, "lng": -97.7261,
     "location_name": "Yard Bar", "source_url": "https://example.com/atx-dogs"
   },
   {

@@ -339,8 +339,12 @@ eliminates, that cost. Apify is mid-market, not overpriced.
      (raw posts) + `data/state/` (per-source cursors), only-new-posts processing, persisted to the
      `data` branch by github-actions[bot] (`scripts/restore-data.sh`/`persist-data.sh`). Remaining:
      a live `APIFY_TOKEN` and the LLM/vision extractor for flyer-IMAGE posts.*
-4. ✅ **Build the static site** with client-side breed/location search + Leaflet/OSM map.
-   — *Done as a zero-dep generator (`site/`); rebuild via `npm run build`. (Astro optional later.)*
+4. ✅ **Build the static site** — multi-page, zero-dep generator (`site/render.js` + `build.js`).
+   — *Filtering is navigation between pre-generated static pages (index, breed/, metro/,
+     find/<breed>__<metro> combos, org/, event/+.ics), all cross-linked. Decided against a
+     framework: JS ships on the index only (Leaflet map + ~0.5KB navigator); every other page is
+     zero-JS (locations link to Google Maps). Free-text search dropped in favor of breed×location
+     pickers. Rebuild via `npm run build` / `build:demo`.*
 5. ☐ **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
    Starter (or swap providers) once free-tier limits actually bite.
 
