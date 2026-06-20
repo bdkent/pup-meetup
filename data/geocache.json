@@ -10,5 +10,34 @@
   "boston common, boston, ma": {
     "lat": 42.35504,
     "lng": -71.066071
+  },
+  "2525 w new hope dr, cedar park, tx": {
+    "lat": 30.5232786,
+    "lng": -97.8659115
+  },
+  "2235 south lamar boulevard, austin, tx": {
+    "lat": 30.2470045,
+    "lng": -97.774184
+  },
+  "278 washington st, east walpole, ma": {
+    "lat": 42.1579073,
+    "lng": -71.2194434
+  },
+  "370 kalamath st, denver, co": {
+    "lat": 39.7220173,
+    "lng": -105.000075
+  },
+  "4700 miller st., wheat ridge, co": {
+    "lat": 39.782799,
+    "lng": -105.11423
+  },
+  "5610 ne halsey st, portland, or": {
+    "lat": 45.533628,
+    "lng": -122.605207
+  },
+  "ne 7th ave & fremont st, portland, or": null,
+  "7654 pocket road, sacramento, ca": {
+    "lat": 38.4791164,
+    "lng": -121.5386986
   }
 }
