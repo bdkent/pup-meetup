@@ -48,6 +48,11 @@ jobs:
           # Optional: set this repo secret to enable Instagram ingestion.
           # If unset, instagram sources are skipped and the free feeds still run.
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          # Enables the vision flyer extractor (reads event date/venue off the
+          # image). If unset, image posts are skipped (the caption isn't trusted).
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Hard monthly cap on vision calls — the budget guardrail (default 100).
+          VISION_MAX_CALLS_PER_MONTH: "100"
         run: npm run build
 
       # Persist the durable store back to the data branch (as github-actions[bot]).
