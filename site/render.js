@@ -13,6 +13,10 @@ import * as G from './graphics.js';
 
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+// Cloudflare Web Analytics — cookieless, no PII, no cross-site tracking. Loaded
+// `defer` so it never blocks render (LCP stays clean). Injected site-wide by
+// pageLayout; it's the only script on otherwise-static pages.
+const ANALYTICS = `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "f51c1df7c756498ab258f475135ee5e0"}'></script>`;
 // Organizers reach us by plain email (no account, no GitHub) — see get-listed.
 // The address is a forwarder on the project's own domain, so it stays private
 // and the alias is a one-line swap here.
@@ -314,7 +318,7 @@ export function pageLayout({ title, description = '', body, bodyClass = '', leaf
 <link rel="icon" href="${G.FAVICON}">
 ${leaflet ? `<link rel="stylesheet" href="${LEAFLET_CSS}" crossorigin=""/>` : ''}
 <style>${CSS}</style>
-</head><body class="${bodyClass}">${body}</body></html>`;
+</head><body class="${bodyClass}">${body}${ANALYTICS}</body></html>`;
 }
 
 // Site-wide nav. `active` highlights the current section ('' | 'organizers' |
@@ -516,7 +520,7 @@ export function renderAboutPage(base, { now = new Date() } = {}) {
     <p>We bring these listings together from what organizers share publicly, so a detail can occasionally be out of date. We're especially careful with locations: if we're not sure exactly where a meetup is, we show a general area on the map instead of a pin, and we say so. <strong>Always confirm the date, time, and place with the organizer before you head out.</strong></p>
 
     <h2>Free, no catch</h2>
-    <p>pup-meetup is a small passion project. It's free, there are no ads, and you don't need an account or a login. Notice something that looks wrong? Email us at <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> — we'd genuinely love to hear from you.</p>
+    <p>pup-meetup is a small passion project. It's free, there are no ads, and you don't need an account or a login. We use privacy-friendly, cookieless analytics just to count visits — no personal data, and nothing that follows you around other sites. Notice something that looks wrong? Email us at <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> — we'd genuinely love to hear from you.</p>
 
     <h2>Run a dog-meetup group?</h2>
     <p>We'd love to include you. <a href="${getListedUrl(base)}">Here's how to get listed →</a></p>

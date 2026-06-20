@@ -8,6 +8,17 @@ import { buildSite } from '../site/build.js';
 const exists = (p) => access(p).then(() => true, () => false);
 const now = new Date('2026-06-19T00:00:00Z');
 
+// Every page carries exactly ONE script: the deferred, cookieless analytics
+// beacon (injected site-wide by pageLayout). "Static" pages must still ship no
+// Leaflet and no inline/app JS — only that one deferred beacon.
+function assertOnlyAnalyticsScript(html, label) {
+  assert.doesNotMatch(html, /leaflet/i, `${label}: no leaflet`);
+  const scripts = html.match(/<script\b/gi) || [];
+  assert.equal(scripts.length, 1, `${label}: exactly one <script> (analytics only)`);
+  assert.match(html, /<script[^>]*\bdefer\b[^>]*static\.cloudflareinsights\.com\/beacon\.min\.js/i,
+    `${label}: the one script is the deferred Cloudflare analytics beacon`);
+}
+
 test('builds the multi-page site from demo data with cross-linked pages', async () => {
   const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
   try {
@@ -27,11 +38,11 @@ test('builds the multi-page site from demo data with cross-linked pages', async 
     assert.match(index, /leaflet@1\.9\.4\/dist\/leaflet\.js/);
     assert.match(index, /Find meetups/);
     assert.match(index, /"shih-tzu":\[[^\]]*"dc"/);
+    assert.match(index, /static\.cloudflareinsights\.com\/beacon\.min\.js/, 'analytics beacon ships site-wide (incl. index)');
 
-    // A subpage is zero-JS: no leaflet, no <script> at all.
+    // A subpage ships no app JS — only the deferred analytics beacon, no leaflet.
     const breed = await readFile(join(out, 'breed/shih-tzu.html'), 'utf8');
-    assert.doesNotMatch(breed, /leaflet/i, 'no leaflet on subpage');
-    assert.doesNotMatch(breed, /<script/i, 'no script on subpage');
+    assertOnlyAnalyticsScript(breed, 'breed page');
     assert.match(breed, /Open in Maps|📍 map/);
 
     // Combo pages are reachable without JS (crawlable) from breed pages and the
@@ -72,7 +83,7 @@ test('renders an organizer directory so cataloged communities are reachable with
     assert.match(la, /Little Lion Social Club LA/);
     assert.match(la, /instagram\.com\/littlelionsocialla/);
     assert.match(la, /No dates yet/, 'event-less org shows a follow CTA');
-    assert.doesNotMatch(la, /<script/i, 'directory pages stay zero-JS');
+    assertOnlyAnalyticsScript(la, 'directory page');
 
     // The community directory lives on its own /organizers page, linked from the
     // top nav (it used to be buried at the bottom of the index).
@@ -107,14 +118,14 @@ test('emits About + Get-listed pages, reachable from the nav, and zero-JS', asyn
     assert.match(about, /always confirm/i, 'about repeats the confirm-at-source safety message');
     assert.doesNotMatch(about, /github/i, 'about is de-teched: no GitHub references for a non-technical audience');
     assert.match(about, /mailto:hello@pup-meetup\.com/, 'about offers a plain email contact');
-    assert.doesNotMatch(about, /<script/i, 'static pages stay zero-JS');
+    assertOnlyAnalyticsScript(about, 'about page');
 
     const listed = await readFile(join(out, 'get-listed.html'), 'utf8');
     assert.match(listed, /Get your community listed/);
     // Submission is a plain email (organizers won't have/want a GitHub account).
     assert.match(listed, /mailto:hello@pup-meetup\.com/, 'links to an email submission channel');
     assert.doesNotMatch(listed, /github\.com/i, 'no GitHub jargon on the get-listed page');
-    assert.doesNotMatch(listed, /<script/i);
+    assertOnlyAnalyticsScript(listed, 'get-listed page');
 
     // Every page carries the same nav (check a deep subpage uses ../ links).
     const breed = await readFile(join(out, 'breed/shih-tzu.html'), 'utf8');
