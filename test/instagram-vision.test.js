@@ -35,3 +35,30 @@ test('image posts are SKIPPED when the monthly budget is exhausted', async () =>
   assert.deepEqual(occ, []);
   assert.equal(budget.used(), 5, 'cap not exceeded');
 });
+
+test('cache hit rebuilds from the stored parse — no API call, no budget spend', async () => {
+  const cache = { a: { is_event: true, title: 'Cached', date: '2026-09-01', time: '12:00', venue: 'Park', address: null, confidence: 0.9 } };
+  let apiCalled = false;
+  const fetchImpl = async (url) => {
+    if (String(url).includes('api.anthropic.com')) apiCalled = true;
+    return { ok: true, status: 200, statusText: 'OK', json: async () => ({}), headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => new Uint8Array([1]).buffer };
+  };
+  const budget = makeVisionBudget({}, { now, cap: 5 });
+  const occ = await postsToOccurrencesWithVision([imgPost('a')], organizer, { now, budget, cache, apiKey: 'k', fetchImpl });
+  assert.equal(occ.length, 1);
+  assert.equal(occ[0].title, 'Cached');
+  assert.equal(apiCalled, false, 're-derivation does not call the API');
+  assert.equal(budget.used(), 0, 'cache hit costs no budget');
+});
+
+test('cache miss calls vision once and populates the cache', async () => {
+  const cache = {};
+  const budget = makeVisionBudget({}, { now, cap: 5 });
+  const occ = await postsToOccurrencesWithVision([imgPost('b')], organizer, {
+    now, budget, cache, apiKey: 'k',
+    fetchImpl: mockFetch({ is_event: true, title: 'Fresh', date: '2026-09-01', time: '12:00', venue: 'Park', address: null, confidence: 0.9 }),
+  });
+  assert.equal(occ.length, 1);
+  assert.ok(cache.b, 'parse was cached for next run');
+  assert.equal(budget.used(), 1);
+});

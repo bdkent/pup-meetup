@@ -18,6 +18,7 @@
 //     rather than duplicating.
 
 import { synthId } from './extract-text.js';
+import { isPlaceholderLocation } from '../geocode.js';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = process.env.VISION_MODEL || 'claude-haiku-4-5'; // cheapest Claude with vision
@@ -118,42 +119,52 @@ export async function callVisionModel({ imageBase64, mediaType, caption, apiKey 
 }
 
 /**
- * High-level: post (with image) -> { occurrence, parsed, usage }.
- * `occurrence` is null when the post isn't a future-dated event (the post still
- * cost one call, so usage is always returned for budget accounting).
+ * Build an Occurrence from an already-parsed vision result (pure, no network).
+ * Used both right after a vision call AND when re-deriving from the cache, so a
+ * change here applies on the next run without re-spending on cached posts.
+ * Returns null when the post isn't a future-dated event.
  */
-export async function extractOccurrenceFromImage(post, organizer, { now = new Date(), apiKey = process.env.ANTHROPIC_API_KEY, fetchImpl = fetch, model } = {}) {
-  const imageUrl = post?.image_urls?.[0];
-  if (!imageUrl) return { occurrence: null, parsed: null, usage: {} };
-
-  const { base64, mediaType } = await fetchImageBase64(imageUrl, { fetchImpl });
-  const { parsed, usage } = await callVisionModel({ imageBase64: base64, mediaType, caption: post.text, apiKey, fetchImpl, model });
-
-  if (!parsed || !parsed.is_event || !parsed.date) return { occurrence: null, parsed, usage };
+export function buildOccurrenceFromParsed(parsed, post, organizer, { now = new Date() } = {}) {
+  if (!parsed || !parsed.is_event || !parsed.date) return null;
   const start = zonedToUtc(parsed.date, parsed.time, organizer.timezone);
-  if (!start || start.getTime() < now.getTime()) return { occurrence: null, parsed, usage }; // safety gate: future only
+  if (!start || start.getTime() < now.getTime()) return null; // safety gate: future only
 
   const startIso = start.toISOString();
   const day = startIso.slice(0, 10);
   const conf = clamp01(Number(parsed.confidence));
+  // "TBD"/"see flyer"/etc. are not real venues — drop them so geocoding doesn't
+  // fuzzy-match junk; the home_geo fallback then places an approximate pin.
+  const venue = isPlaceholderLocation(parsed.venue) ? null : String(parsed.venue).trim();
+  const address = isPlaceholderLocation(parsed.address) ? null : (parsed.address ? String(parsed.address).trim() : null);
   const status = conf >= 0.6 && parsed.time ? 'published' : 'review'; // publish only with time + confidence
 
-  const occurrence = {
+  return {
     id: synthId(organizer.id, day),
     organizer_id: organizer.id,
     series_id: null,
     recurrence_label: null,
-    title: (parsed.title || organizer.name || '').slice(0, 140) || organizer.name,
+    title: String(parsed.title || organizer.name || '').trim().slice(0, 140) || organizer.name,
     start: startIso,
     end: null,
-    location: { name: parsed.venue || null, address: parsed.address || parsed.venue || null, lat: null, lng: null },
+    location: { name: venue, address: address || venue, lat: null, lng: null },
     breeds: organizer.breeds ?? [],
-    sources: [{ post_url: post.permalink ?? null, image: imageUrl, raw_text: post.text || null, posted_at: post.posted_at ?? null }],
+    sources: [{ post_url: post.permalink ?? null, image: post.image_urls?.[0] ?? null, raw_text: post.text || null, posted_at: post.posted_at ?? null }],
     confidence: Number(conf.toFixed(2)),
     status,
     extracted_at: now.toISOString(),
     updated_at: now.toISOString(),
     extractor: 'vision',
   };
-  return { occurrence, parsed, usage };
+}
+
+/**
+ * High-level: post (with image) -> { occurrence, parsed, usage }. One network
+ * call; usage is always returned for budget accounting (occurrence may be null).
+ */
+export async function extractOccurrenceFromImage(post, organizer, { now = new Date(), apiKey = process.env.ANTHROPIC_API_KEY, fetchImpl = fetch, model } = {}) {
+  const imageUrl = post?.image_urls?.[0];
+  if (!imageUrl) return { occurrence: null, parsed: null, usage: {} };
+  const { base64, mediaType } = await fetchImageBase64(imageUrl, { fetchImpl });
+  const { parsed, usage } = await callVisionModel({ imageBase64: base64, mediaType, caption: post.text, apiKey, fetchImpl, model });
+  return { occurrence: buildOccurrenceFromParsed(parsed, post, organizer, { now }), parsed, usage };
 }

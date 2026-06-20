@@ -28,6 +28,18 @@ export function normalizeAddress(address) {
   return String(address || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
+// Placeholder / non-geocodable location strings. Geocoding these yields garbage
+// (e.g. "TBD" fuzzy-matched to a town in Turkey), so we treat them as "no venue"
+// and let the home_geo fallback place an approximate pin instead.
+const PLACEHOLDER_RE = /^(tbd|tba|t\.?b\.?[ad]\.?|n\/?a|none|null|unknown|undisclosed|private|to be (determined|announced|confirmed|decided)|location tbd|venue tbd|coming soon|see (the )?(flyer|bio|dm|post)|dm (me )?for (the )?(location|details|info|address))$/;
+
+export function isPlaceholderLocation(s) {
+  const t = normalizeAddress(s);
+  if (!t || t.length < 3) return true; // empty / too short to geocode
+  if (!/[a-z]/.test(t)) return true; // no letters (emoji, punctuation)
+  return PLACEHOLDER_RE.test(t);
+}
+
 export async function loadCache(path) {
   try {
     return JSON.parse(await readFile(path, 'utf8'));
@@ -49,6 +61,7 @@ export async function geocodeAddress(address, opts = {}) {
   const { cache = {}, fetchImpl = fetch, userAgent = USER_AGENT, skipThrottle = false } = opts;
   const key = normalizeAddress(address);
   if (!key) return null;
+  if (isPlaceholderLocation(address)) { cache[key] = null; return null; } // never geocode "TBD" etc.
   if (Object.prototype.hasOwnProperty.call(cache, key)) return cache[key]; // hit (incl. negative)
 
   if (!skipThrottle) await throttle();

@@ -6,7 +6,7 @@
 // Free-feed sources (ics/eventbrite/rss) are idempotently re-derived each run and
 // need no state; only social sources (instagram/facebook) use this.
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,6 +60,18 @@ export async function appendRawPosts(organizerId, posts, { rawDir = RAW_DIR } = 
     await writeFile(join(dir, `${safe(p.post_id)}.json`), JSON.stringify(p, null, 2) + '\n');
   }
   return posts.length;
+}
+
+/** Load all persisted raw posts for an organizer (the durable acquisition archive). */
+export async function loadRawPosts(organizerId, { rawDir = RAW_DIR } = {}) {
+  const dir = join(rawDir, organizerId);
+  let files = [];
+  try { files = (await readdir(dir)).filter((f) => f.endsWith('.json')); } catch { return []; }
+  const out = [];
+  for (const f of files) {
+    try { out.push(JSON.parse(await readFile(join(dir, f), 'utf8'))); } catch { /* skip */ }
+  }
+  return out;
 }
 
 function safe(id) {

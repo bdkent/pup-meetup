@@ -12,7 +12,7 @@
 //
 // CLI:  node src/ingest.js   (also: npm run ingest)
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadCatalog } from './catalog.js';
@@ -21,8 +21,10 @@ import { fetchAndExtractJsonLd } from './sources/jsonld.js';
 import { fetchAndParseRss } from './sources/rss.js';
 import { pollInstagram, postsToOccurrencesWithVision } from './sources/instagram.js';
 import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
-import { loadState, saveState, appendRawPosts } from './store.js';
+import { loadState, saveState, appendRawPosts, loadRawPosts } from './store.js';
 import { loadVisionUsage, saveVisionUsage, makeVisionBudget } from './extract/vision-budget.js';
+import { loadVisionCache, saveVisionCache } from './extract/vision-cache.js';
+import { enrichFeedVenues } from './sources/event-venue.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
 const GEOCACHE_PATH = fileURLToPath(new URL('../data/geocache.json', import.meta.url));
@@ -41,6 +43,10 @@ function safeFilename(id) {
 
 export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACHE_PATH } = {}) {
   const organizers = await loadCatalog();
+  // data/events is a rebuildable projection — clear it so each run emits a clean
+  // set (feeds are re-derived; Instagram is re-derived from the raw archive). This
+  // prevents stale/past occurrences from lingering across runs.
+  await rm(eventsDir, { recursive: true, force: true });
   await mkdir(eventsDir, { recursive: true });
   const geocache = await loadCache(geocachePath);
   const now = new Date();
@@ -48,6 +54,8 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   // Vision budget: hard monthly cap so a bug can't drain the API balance.
   const visionUsage = await loadVisionUsage();
   const visionBudget = makeVisionBudget(visionUsage, { now });
+  const visionCache = await loadVisionCache(); // per-post vision results (re-derive for free)
+  const venueCache = {}; // in-run cache of event-page venues (dedups recurring series)
 
   let written = 0;
   let skipped = 0;
@@ -74,9 +82,13 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
           const { newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now });
           stateDirty = true;
           await appendRawPosts(org.id, newPosts);
-          const occurrences = await postsToOccurrencesWithVision(newPosts, org, { now, budget: visionBudget });
+          // Re-derive from the FULL durable raw archive (cache-backed) so events
+          // persist across runs and code fixes apply without re-spending vision.
+          const archive = await loadRawPosts(org.id);
+          const posts = archive.length ? archive : newPosts;
+          const occurrences = await postsToOccurrencesWithVision(posts, org, { now, budget: visionBudget, cache: visionCache });
           await writeOccurrences(occurrences);
-          console.error(`${org.id}: ${occurrences.length} event(s) from ${newPosts.length} new post(s) (${fetched} fetched) [instagram, vision ${visionBudget.used()}/${visionBudget.cap}]`);
+          console.error(`${org.id}: ${occurrences.length} event(s) from ${posts.length} raw post(s) (${newPosts.length} new, ${fetched} fetched) [instagram, vision ${visionBudget.used()}/${visionBudget.cap}]`);
           continue;
         }
 
@@ -86,6 +98,11 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
           continue; // unimplemented source type
         }
         const occurrences = await parser(src, org);
+        // Feeds like Meetup omit LOCATION from the .ics; pull the venue from the
+        // event page's JSON-LD before geocoding.
+        if (src.type === 'meetup_ics' || src.type === 'ics') {
+          await enrichFeedVenues(occurrences, { cache: venueCache });
+        }
         await writeOccurrences(occurrences);
         console.error(`${org.id}: ${occurrences.length} occurrence(s) from ${src.type}`);
       } catch (err) {
@@ -103,6 +120,7 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
 
   await saveCache(geocachePath, geocache);
   await saveVisionUsage(visionUsage);
+  await saveVisionCache(visionCache);
   console.error(`\nWrote ${written} occurrence file(s) to ${eventsDir}` +
     (skipped ? ` (${skipped} source(s) skipped — see notes above)` : ''));
   return { written, skipped };

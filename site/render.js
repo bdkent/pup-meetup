@@ -38,6 +38,8 @@ main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 122px)
 .tags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
 .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--accent)}
 .approx{color:var(--muted);font-style:italic}
+.confirm{margin-top:14px;padding:10px 12px;border:1px solid #ffe1a8;background:#fff7e6;color:#8a6d3b;border-radius:10px;font-size:13px}
+.confirm a{color:#8a6d3b;text-decoration:underline}
 .empty{color:var(--muted);padding:24px 0;text-align:center}
 .browse{margin:6px 0 14px;display:flex;flex-direction:column;gap:6px}
 .browse-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:6px}
@@ -149,9 +151,12 @@ function mapsLink(ev) {
 }
 
 export function eventCardHtml(ev, base) {
-  const venue = ev.location?.name || 'Location TBD';
-  const approx = ev.location?.approx ? ' <span class="approx">(approx.)</span>' : '';
-  const maps = mapsLink(ev);
+  const loc = ev.location || {};
+  const precise = loc.lat != null && loc.lng != null && !loc.approx;
+  const maps = precise ? mapsLink(ev) : null;
+  const locLine = precise
+    ? `${esc(loc.name || loc.address || 'Location')}${maps ? ` · <a href="${maps}">📍 map</a>` : ''}`
+    : `<span class="approx">📍 ${loc.name ? esc(loc.name) + ' — ' : ''}approximate area, confirm location</span>`;
   const tags = [
     ...(ev.breeds || []).map((b) => chip(humanizeBreed(b), breedUrl(base, b))),
     ev.metro ? chip(humanizeMetro(ev.metro), metroUrl(base, ev.metro)) : '',
@@ -159,7 +164,7 @@ export function eventCardHtml(ev, base) {
   return `<article class="card">
     <h3><a href="${eventUrl(base, ev.id)}">${esc(ev.title)}</a></h3>
     <div class="when">${esc(fmtDate(ev.start, ev.timezone))}</div>
-    <div class="meta">${esc(venue)}${approx}${ev.organizer_name ? ` · <a href="${orgUrl(base, ev.organizer_id)}">${esc(ev.organizer_name)}</a>` : ''}${maps ? ` · <a href="${maps}">📍 map</a>` : ''}</div>
+    <div class="meta">${locLine}${ev.organizer_name ? ` · <a href="${orgUrl(base, ev.organizer_id)}">${esc(ev.organizer_name)}</a>` : ''}</div>
     <div class="tags">${tags}</div>
   </article>`;
 }
@@ -180,9 +185,12 @@ function eventsToPoints(events, base) {
   return events
     .filter((e) => e.location?.lat != null && e.location?.lng != null)
     .map((e) => ({
-      lat: e.location.lat, lng: e.location.lng,
-      popup: `<b>${esc(e.title)}</b><br>${esc(fmtDate(e.start, e.timezone))}<br>${esc(e.location.name || '')}`
-        + `${e.location.approx ? ' (approx.)' : ''}<br><a href="${eventUrl(base, e.id)}">details</a>`,
+      lat: e.location.lat, lng: e.location.lng, approx: !!e.location.approx,
+      popup: `<b>${esc(e.title)}</b><br>${esc(fmtDate(e.start, e.timezone))}<br>`
+        + (e.location.approx
+          ? '<i>Approximate area — confirm the exact spot</i>'
+          : esc(e.location.name || e.location.address || ''))
+        + `<br><a href="${eventUrl(base, e.id)}">details &amp; source</a>`,
     }));
 }
 
@@ -265,7 +273,10 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
   <script>
   (function(){var pts=${jsonScript(points)};var map=L.map('map');
    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-   var b=[];for(var i=0;i<pts.length;i++){var p=pts[i];L.marker([p.lat,p.lng]).addTo(map).bindPopup(p.popup);b.push([p.lat,p.lng]);}
+   var b=[];for(var i=0;i<pts.length;i++){var p=pts[i];
+     if(p.approx){L.circle([p.lat,p.lng],{radius:2500,color:'#7c4dff',weight:1,fillColor:'#7c4dff',fillOpacity:0.12}).addTo(map).bindPopup(p.popup);}
+     else{L.marker([p.lat,p.lng]).addTo(map).bindPopup(p.popup);}
+     b.push([p.lat,p.lng]);}
    if(b.length)map.fitBounds(b,{padding:[40,40],maxZoom:13});else map.setView([39.5,-98.35],4);})();
   ${NAV_SCRIPT.replace('__PAIRS__', jsonScript(pairs)).replace('__MLABEL__', jsonScript(metroLabels))}
   </script>`;
@@ -337,9 +348,12 @@ export function renderFindPage(breedSlug, metroSlug, events, base, { now = new D
 }
 
 export function renderEventPage(ev, base, { now = new Date() } = {}) {
-  const venue = ev.location?.name || 'Location TBD';
-  const approx = ev.location?.approx ? ' <span class="approx">(approx.)</span>' : '';
-  const maps = mapsLink(ev);
+  const loc = ev.location || {};
+  const precise = loc.lat != null && loc.lng != null && !loc.approx;
+  const maps = precise ? mapsLink(ev) : null;
+  const locText = precise
+    ? (loc.address || loc.name || 'See source for location')
+    : (loc.name ? `Near ${loc.name} — exact spot not confirmed` : 'Exact location not confirmed');
   const desc = ev.sources?.find((s) => s.raw_text)?.raw_text;
   const validSources = (ev.sources || []).filter((s) => s.post_url);
   const sourceLinks = validSources
@@ -348,7 +362,7 @@ export function renderEventPage(ev, base, { now = new Date() } = {}) {
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a></p>
     <h1>${esc(ev.title)}</h1>
     <div class="when">${esc(fmtDate(ev.start, ev.timezone))}${ev.recurrence_label ? ` · ${esc(ev.recurrence_label)}` : ''}</div>
-    <div class="meta" style="color:var(--muted);margin-top:4px">${esc(ev.location?.address || venue)}${approx}</div>
+    <div class="meta" style="color:var(--muted);margin-top:4px">📍 ${esc(locText)}${precise ? '' : ' <span class="approx">(approximate)</span>'}</div>
     <p style="margin-top:10px">
       <a class="btn" href="${icsUrl(base, ev.id)}">＋ Add to calendar</a>
       <a class="btn" href="${gcalUrl(ev)}">Google Calendar</a>
@@ -359,7 +373,7 @@ export function renderEventPage(ev, base, { now = new Date() } = {}) {
       ${(ev.breeds || []).map((b) => chip(humanizeBreed(b), breedUrl(base, b))).join('')}
       ${ev.metro ? chip(humanizeMetro(ev.metro), metroUrl(base, ev.metro)) : ''}
     </div>
-    ${sourceLinks ? `<p class="sources" style="margin-top:12px">${sourceLinks}</p>` : ''}
+    <div class="confirm">⚠️ This listing is auto-collected and may be imperfect — always confirm the date, time, and exact location at the source before you go${sourceLinks ? `: ${sourceLinks}` : '.'}</div>
     ${desc ? `<div class="desc">${esc(desc)}</div>` : ''}
   </div>`;
   return pageLayout({ title: `${ev.title} — pup-meetup`, description: `${ev.title} on ${fmtDate(ev.start, ev.timezone)}.`, body });

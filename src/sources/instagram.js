@@ -8,7 +8,7 @@
 import { fetchInstagramPosts } from '../adapters/apify-instagram.js';
 import { classifyPost } from '../extract/classify.js';
 import { extractOccurrenceFromPost } from '../extract/extract-text.js';
-import { extractOccurrenceFromImage } from '../extract/extract-vision.js';
+import { extractOccurrenceFromImage, buildOccurrenceFromParsed } from '../extract/extract-vision.js';
 import { getCursor, filterNewPosts, updateCursor } from '../store.js';
 
 export async function fetchAndExtractInstagram(handle, opts = {}) {
@@ -45,7 +45,8 @@ export async function pollInstagram(handle, opts = {}) {
  *
  * @param {{budget?: {canSpend: () => boolean, record: () => void}, apiKey?: string, fetchImpl?: typeof fetch}} opts
  */
-export async function postsToOccurrencesWithVision(posts, organizer, { now = new Date(), budget, apiKey = process.env.ANTHROPIC_API_KEY, fetchImpl } = {}) {
+export async function postsToOccurrencesWithVision(posts, organizer, { now = new Date(), budget, cache, apiKey = process.env.ANTHROPIC_API_KEY, fetchImpl } = {}) {
+  const hasCache = cache && typeof cache === 'object';
   const byId = new Map();
   const add = (occ) => {
     if (!occ) return;
@@ -59,14 +60,20 @@ export async function postsToOccurrencesWithVision(posts, organizer, { now = new
   for (const post of posts) {
     const hasImage = post.image_urls && post.image_urls.length;
     if (hasImage) {
-      // Flyer posts: the date/venue live in the IMAGE, and the caption alone is
-      // unreliable (wrong dates + false positives — see the live probe). So image
-      // posts go to vision ONLY; if vision can't run (no key, over budget, or an
-      // API error) we SKIP rather than guess from the caption.
+      // Cache hit: rebuild from the stored vision parse — no API call, and the
+      // CURRENT extraction code applies (so fixes land without re-spending).
+      if (hasCache && post.post_id && Object.prototype.hasOwnProperty.call(cache, post.post_id)) {
+        add(buildOccurrenceFromParsed(cache[post.post_id], post, organizer, { now }));
+        continue;
+      }
+      // Miss: flyer posts go to vision ONLY (the caption is unreliable — wrong
+      // dates + false positives per the probe). If vision can't run (no key, over
+      // budget, or an error) we SKIP rather than guess from the caption.
       if (apiKey && (!budget || budget.canSpend())) {
         try {
-          const { occurrence } = await extractOccurrenceFromImage(post, organizer, { now, apiKey, fetchImpl });
+          const { occurrence, parsed } = await extractOccurrenceFromImage(post, organizer, { now, apiKey, fetchImpl });
           if (budget) budget.record();
+          if (hasCache && post.post_id) cache[post.post_id] = parsed ?? null;
           add(occurrence);
         } catch (err) {
           console.error(`  vision error (${post.permalink || post.post_id}): ${err.message} — skipping (caption unreliable for flyers)`);
