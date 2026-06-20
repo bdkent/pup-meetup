@@ -60,6 +60,11 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   // for steady-state runs; a one-off backfill sets IG_MAX_POSTS higher to pull
   // older announcements into the durable raw archive (they then persist for free).
   const igMaxPosts = Number(process.env.IG_MAX_POSTS) || undefined;
+  // Offline reproject: rebuild the events projection from the durable raw archive
+  // + free feed fetches WITHOUT any paid API calls (no Apify poll, vision served
+  // from cache only). Used by free push deploys so events survive a build that
+  // doesn't run a full ingest. New social content arrives on the next real run.
+  const offline = process.env.INGEST_OFFLINE === '1';
 
   let written = 0;
   let skipped = 0;
@@ -80,6 +85,17 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
       if (src.enabled === false) continue;
       try {
         if (src.type === 'instagram') {
+          // Offline reproject (free push deploys): re-derive events from the
+          // durable raw archive + vision cache only — no Apify poll, no new
+          // vision calls. Keeps Instagram events alive without spending anything.
+          if (offline) {
+            const posts = await loadRawPosts(org.id);
+            if (!posts.length) continue;
+            const occurrences = await postsToOccurrencesWithVision(posts, org, { now, budget: visionBudget, cache: visionCache });
+            await writeOccurrences(occurrences);
+            console.error(`${org.id}: ${occurrences.length} event(s) from ${posts.length} archived post(s) [instagram, offline reproject]`);
+            continue;
+          }
           // pollInstagram advances the change-detection cursor and returns the new
           // posts; we re-extract them vision-first (the cheap text occurrences it
           // also returns are ignored in favour of the flyer-reading path).

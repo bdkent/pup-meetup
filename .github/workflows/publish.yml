@@ -70,12 +70,18 @@ jobs:
           IG_MAX_POSTS: ${{ inputs.max_posts || '5' }}
         run: npm run build
 
-      # A plain push just rebuilds the site from the restored store — NO ingest,
-      # NO API calls, NO cost. New orgs and site/copy changes go live right away;
-      # their events are pulled on the next scheduled run (or a manual dispatch).
-      - name: Build site only (free; push deploys)
+      # A plain push rebuilds the events projection OFFLINE from the restored
+      # durable store (raw archive + cached vision) plus the free feed fetches —
+      # NO Apify poll, NO new vision calls, NO cost. So events survive free push
+      # deploys; brand-new social content arrives on the next scheduled/manual run.
+      # No APIFY_TOKEN / ANTHROPIC_API_KEY here on purpose: belt-and-suspenders so
+      # a push physically cannot spend, even if the offline flag regressed.
+      - name: Reproject + build site (free; push deploys)
         if: github.event_name == 'push'
-        run: npm run build:site
+        env:
+          INGEST_OFFLINE: "1"
+          VISION_MAX_CALLS_PER_MONTH: "0"
+        run: npm run build
 
       # Persist the durable store back to the data branch (as github-actions[bot]).
       # Only after an ingest — a push-only run produces no new data to persist.
