@@ -90,6 +90,58 @@ export const findUrl = (b, breed, metro) => `${b}find/${safeId(breed)}__${safeId
 const chip = (label, href) => `<a class="tag" href="${href}">${esc(label)}</a>`;
 const avatar = (name) => `<span class="avatar">${esc((String(name || '?').trim()[0] || '?').toUpperCase())}</span>`;
 
+// Outbound links to an organizer's own channels (Instagram handle, Meetup .ics,
+// website, etc.) — the way to reach communities we can't yet auto-ingest.
+function sourceLinksHtml(sources) {
+  return (sources || []).map((s) => {
+    if (s.type === 'instagram' && s.handle) return `<a href="https://www.instagram.com/${esc(s.handle)}/">Instagram ↗</a>`;
+    if (s.url) return `<a href="${esc(s.url)}">${esc(labelForType(s.type))} ↗</a>`;
+    return '';
+  }).filter(Boolean).join(' · ');
+}
+
+// A directory card for an organizer/community. Works whether or not we have any
+// parsed events for them yet (eventCount 0 → "follow for announcements").
+export function orgCardHtml(org, base) {
+  const links = sourceLinksHtml(org.sources);
+  const count = org.eventCount || 0;
+  const status = count ? `${count} upcoming meetup${count === 1 ? '' : 's'}` : 'No dates yet — follow for announcements';
+  const tags = [
+    ...(org.breeds || []).map((b) => chip(humanizeBreed(b), breedUrl(base, b))),
+    org.metro ? chip(humanizeMetro(org.metro), metroUrl(base, org.metro)) : '',
+  ].join('');
+  return `<article class="card">
+    <h3><a href="${orgUrl(base, org.id)}">${esc(org.name)}</a></h3>
+    <div class="meta">${esc(status)}${links ? ` · ${links}` : ''}</div>
+    ${tags ? `<div class="tags">${tags}</div>` : ''}
+  </article>`;
+}
+
+// A labeled block of organizer cards (the directory, scoped by the caller).
+function communitiesSection(orgs, base, label) {
+  if (!orgs || !orgs.length) return '';
+  return `<div class="group-label">${esc(label)}</div>${orgs.map((o) => orgCardHtml(o, base)).join('')}`;
+}
+
+// The full community directory for the index, grouped by city. This is what
+// makes the site useful before any events are parsed (e.g. Instagram-only
+// organizers): every cataloged community is visible with a link to follow.
+function directoryHtml(directory, metroLabels) {
+  if (!directory || !directory.length) return '';
+  const byMetro = {};
+  for (const o of directory) (byMetro[o.metro || 'other'] ??= []).push(o);
+  const metros = Object.keys(byMetro).sort();
+  const blocks = metros.map((m) => {
+    const label = (metroLabels && metroLabels[m]) || humanizeMetro(m);
+    return `<div class="group-label"><a href="${metroUrl('', m)}">${esc(label)}</a></div>` + byMetro[m].map((o) => orgCardHtml(o, '')).join('');
+  }).join('');
+  return `<section class="wrap directory">
+    <h2 style="font-size:18px;margin:0 0 4px">Communities we're tracking</h2>
+    <p class="count">${directory.length} organizer${directory.length === 1 ? '' : 's'} across ${metros.length} cit${metros.length === 1 ? 'y' : 'ies'} — follow them for meetup announcements.</p>
+    ${blocks}
+  </section>`;
+}
+
 function mapsLink(ev) {
   const loc = ev.location || {};
   const q = loc.address || loc.name || (loc.lat != null ? `${loc.lat},${loc.lng}` : null);
@@ -185,21 +237,21 @@ bs.addEventListener('change',fillMetros);
 document.getElementById('go').addEventListener('click',go);
 `;
 
-export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels = {}, now = new Date() } = {}) {
-  const breeds = [...new Set(events.flatMap((e) => e.breeds || []))].sort();
-  const metros = Object.keys(metroLabels).sort();
+export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels = {}, now = new Date(), breeds: breedFacet, metros: metroFacet, directory = [] } = {}) {
+  const breeds = (breedFacet && breedFacet.length ? [...breedFacet] : [...new Set(events.flatMap((e) => e.breeds || []))]).sort();
+  const metros = (metroFacet && metroFacet.length ? [...metroFacet] : Object.keys(metroLabels)).sort();
   const opt = (slug, label) => `<option value="${esc(slug)}">${esc(label)}</option>`;
   const points = eventsToPoints(events, '');
   const browse = `<div class="browse">
     <div><span class="browse-label">Browse breeds</span>${breeds.map((b) => chip(humanizeBreed(b), breedUrl('', b))).join('')}</div>
-    <div><span class="browse-label">Browse cities</span>${metros.map((m) => chip(metroLabels[m], metroUrl('', m))).join('')}</div>
+    <div><span class="browse-label">Browse cities</span>${metros.map((m) => chip(metroLabels[m] || humanizeMetro(m), metroUrl('', m))).join('')}</div>
   </div>`;
 
   const body = `<header class="app">
     <h1>🐾 pup-meetup <small>— upcoming dog meetups</small></h1>
     <div class="controls">
       <select id="breed"><option value="">Any breed</option>${breeds.map((b) => opt(b, humanizeBreed(b))).join('')}</select>
-      <select id="metro"><option value="">Any location</option>${Object.keys(metroLabels).sort().map((m) => opt(m, metroLabels[m])).join('')}</select>
+      <select id="metro"><option value="">Any location</option>${metros.map((m) => opt(m, metroLabels[m] || humanizeMetro(m))).join('')}</select>
       <button id="go" type="button">Find meetups →</button>
     </div>
   </header>
@@ -208,6 +260,7 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
     <section id="list"><p class="count">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>${browse}${eventListHtml(events, '', { now })}</section>
     <div id="map" class="map"></div>
   </main>
+  ${directoryHtml(directory, metroLabels)}
   <script src="${LEAFLET_JS}"></script>
   <script>
   (function(){var pts=${jsonScript(points)};var map=L.map('map');
@@ -220,24 +273,23 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
 }
 
 export function renderOrgPage(org, events, base, { now = new Date() } = {}) {
-  const sourceLinks = (org.sources || []).map((s) => {
-    if (s.type === 'instagram' && s.handle) return `<a href="https://www.instagram.com/${esc(s.handle)}/">Instagram</a>`;
-    if (s.url) return `<a href="${esc(s.url)}">${esc(labelForType(s.type))}</a>`;
-    return '';
-  }).filter(Boolean).join('');
-  const breeds = [...new Set(events.flatMap((e) => e.breeds || []))];
+  const sourceLinks = sourceLinksHtml(org.sources);
+  const breeds = (org.breeds && org.breeds.length) ? org.breeds : [...new Set(events.flatMap((e) => e.breeds || []))];
+  const agenda = events.length
+    ? eventListHtml(events, base, { now })
+    : `<p class="empty">No upcoming dates parsed yet${sourceLinks ? ' — follow the links above for meetup announcements.' : '.'}</p>`;
   const body = `${topbar(base)}<div class="wrap">
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a></p>
     <div class="org-header">${avatar(org.name)}<h1>${esc(org.name)}</h1></div>
     <div class="tags">${org.metro ? chip(humanizeMetro(org.metro), metroUrl(base, org.metro)) : ''}${breeds.map((b) => chip(humanizeBreed(b), breedUrl(base, b))).join('')}</div>
     ${sourceLinks ? `<p class="sources" style="margin-top:10px">${sourceLinks}</p>` : ''}
     <p class="count" style="margin-top:14px">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>
-    ${eventListHtml(events, base, { now })}
+    ${agenda}
   </div>`;
   return pageLayout({ title: `${org.name} — pup-meetup`, description: `Upcoming meetups from ${org.name}.`, body });
 }
 
-export function renderBreedPage(breedSlug, events, base, { now = new Date(), metros = [] } = {}) {
+export function renderBreedPage(breedSlug, events, base, { now = new Date(), metros = [], orgs = [] } = {}) {
   const label = humanizeBreed(breedSlug);
   const byCity = metros.length
     ? `<div class="browse"><span class="browse-label">By city</span>${metros.map((m) => chip(humanizeMetro(m), findUrl(base, breedSlug, m))).join('')}</div>` : '';
@@ -246,32 +298,40 @@ export function renderBreedPage(breedSlug, events, base, { now = new Date(), met
     <h1>${esc(label)} meetups</h1>
     <p class="count">${events.length} upcoming ${esc(label)} meetup${events.length === 1 ? '' : 's'}</p>
     ${byCity}
-    ${eventListHtml(events, base, { now })}
+    ${events.length ? eventListHtml(events, base, { now }) : ''}
+    ${communitiesSection(orgs, base, `${label} communities`)}
+    ${!events.length && !orgs.length ? '<p class="empty">No upcoming meetups here yet — check back soon.</p>' : ''}
   </div>`;
   return pageLayout({ title: `${label} dog meetups — pup-meetup`, description: `Upcoming ${label} dog meetups.`, body });
 }
 
-export function renderMetroPage(metroSlug, events, base, { now = new Date() } = {}) {
+export function renderMetroPage(metroSlug, events, base, { now = new Date(), orgs = [] } = {}) {
   const label = humanizeMetro(metroSlug);
-  const breeds = [...new Set(events.flatMap((e) => e.breeds || []))];
+  const breeds = [...new Set([...events.flatMap((e) => e.breeds || []), ...orgs.flatMap((o) => o.breeds || [])])];
+  const byBreed = breeds.length
+    ? `<div class="browse"><span class="browse-label">By breed</span>${breeds.map((b) => chip(humanizeBreed(b), findUrl(base, b, metroSlug))).join('')}</div>` : '';
   const body = `${topbar(base)}<div class="wrap">
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a></p>
     <h1>Dog meetups in ${esc(label)}</h1>
     <p class="count" style="margin-top:10px">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>
-    <div class="browse"><span class="browse-label">By breed</span>${breeds.map((b) => chip(humanizeBreed(b), findUrl(base, b, metroSlug))).join('')}</div>
-    ${eventListHtml(events, base, { now })}
+    ${byBreed}
+    ${events.length ? eventListHtml(events, base, { now }) : ''}
+    ${communitiesSection(orgs, base, `Communities in ${label}`)}
+    ${!events.length && !orgs.length ? '<p class="empty">No upcoming meetups here yet — check back soon.</p>' : ''}
   </div>`;
   return pageLayout({ title: `Dog meetups in ${label} — pup-meetup`, description: `Upcoming dog meetups in ${label}.`, body });
 }
 
-export function renderFindPage(breedSlug, metroSlug, events, base, { now = new Date() } = {}) {
+export function renderFindPage(breedSlug, metroSlug, events, base, { now = new Date(), orgs = [] } = {}) {
   const bl = humanizeBreed(breedSlug);
   const ml = humanizeMetro(metroSlug);
   const body = `${topbar(base)}<div class="wrap">
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a> · <a href="${breedUrl(base, breedSlug)}">${esc(bl)}</a> · <a href="${metroUrl(base, metroSlug)}">${esc(ml)}</a></p>
     <h1>${esc(bl)} meetups in ${esc(ml)}</h1>
     <p class="count">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>
-    ${eventListHtml(events, base, { now })}
+    ${events.length ? eventListHtml(events, base, { now }) : ''}
+    ${communitiesSection(orgs, base, `${bl} communities in ${ml}`)}
+    ${!events.length && !orgs.length ? '<p class="empty">No upcoming meetups here yet — check back soon.</p>' : ''}
   </div>`;
   return pageLayout({ title: `${bl} meetups in ${ml} — pup-meetup`, description: `Upcoming ${bl} dog meetups in ${ml}.`, body });
 }

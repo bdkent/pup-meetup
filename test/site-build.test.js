@@ -52,6 +52,39 @@ test('builds the multi-page site from demo data with cross-linked pages', async 
   }
 });
 
+test('renders an organizer directory so cataloged communities are reachable without events', async () => {
+  const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
+  try {
+    // Non-demo build = real catalog. The LA Shih Tzu orgs are Instagram-only
+    // (no parsed events until APIFY_TOKEN), so every assertion below holds
+    // regardless of whatever is in data/events locally or in CI.
+    await buildSite({ demo: false, now, outDir: out });
+
+    // A metro/breed/combo page exists for a city that has cataloged communities
+    // but (likely) no events — otherwise the index navigator would 404.
+    assert.ok(await exists(join(out, 'metro/los-angeles.html')), 'metro page for event-less city');
+    assert.ok(await exists(join(out, 'org/la-little-lion-social-club.html')), 'org page for event-less org');
+    assert.ok(await exists(join(out, 'find/shih-tzu__los-angeles.html')), 'combo page from catalog pair');
+
+    // The metro page lists the community, links out to its Instagram, and is
+    // still zero-JS.
+    const la = await readFile(join(out, 'metro/los-angeles.html'), 'utf8');
+    assert.match(la, /Little Lion Social Club LA/);
+    assert.match(la, /instagram\.com\/littlelionsocialla/);
+    assert.match(la, /No dates yet/, 'event-less org shows a follow CTA');
+    assert.doesNotMatch(la, /<script/i, 'directory pages stay zero-JS');
+
+    // The index has the directory and the LA option is selectable even with no
+    // LA events.
+    const index = await readFile(join(out, 'index.html'), 'utf8');
+    assert.match(index, /Communities we're tracking/);
+    assert.match(index, /org\/la-little-lion-social-club\.html/);
+    assert.match(index, /<option value="los-angeles">/, 'event-less metro is in the picker');
+  } finally {
+    await rm(out, { recursive: true, force: true });
+  }
+});
+
 test('combo pages are generated only for breed×metro pairs that exist', async () => {
   const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
   try {

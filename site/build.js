@@ -61,17 +61,29 @@ function seedToEv(s, now) {
   };
 }
 
-// Build the organizer view (catalog org if present, else synthesized from events).
-function buildOrgs(events, catalogById) {
-  const orgs = new Map();
-  for (const ev of events) {
-    if (orgs.has(ev.organizer_id)) continue;
-    const cat = catalogById.get(ev.organizer_id);
-    orgs.set(ev.organizer_id, cat
-      ? { id: cat.id, name: cat.name, metro: cat.metro, sources: cat.sources ?? [] }
-      : { id: ev.organizer_id, name: ev.organizer_name, metro: ev.metro, sources: [] });
+// Build the full organizer directory: every catalog organizer PLUS any
+// event-only organizers (e.g. demo data) not in the catalog. Crucially, orgs
+// with zero upcoming events are still included with eventCount 0 — so the site
+// works as a community directory before any events are parsed (the common case
+// for Instagram-only organizers until APIFY_TOKEN is set). Returns a Map keyed
+// by organizer id, each entry { id, name, metro, breeds[], sources[], eventCount }.
+function buildDirectory(events, catalog) {
+  const dir = new Map();
+  for (const o of catalog) {
+    dir.set(o.id, { id: o.id, name: o.name, metro: o.metro ?? null, breeds: [...(o.breeds || [])], sources: o.sources ?? [], eventCount: 0 });
   }
-  return orgs;
+  for (const ev of events) {
+    let e = dir.get(ev.organizer_id);
+    if (!e) {
+      e = { id: ev.organizer_id, name: ev.organizer_name, metro: ev.metro ?? null, breeds: [], sources: [], eventCount: 0 };
+      dir.set(ev.organizer_id, e);
+    }
+    e.eventCount++;
+    for (const b of ev.breeds || []) if (!e.breeds.includes(b)) e.breeds.push(b);
+    if (!e.metro && ev.metro) e.metro = ev.metro;
+  }
+  for (const e of dir.values()) e.breeds.sort();
+  return dir;
 }
 
 async function writePage(outDir, rel, html) {
@@ -94,16 +106,23 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   }
   events.sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
 
-  // Facets
+  // Organizer directory (catalog ∪ event-only orgs), incl. those with 0 events.
+  const directory = buildDirectory(events, catalog);
+
+  // Facets are derived from events AND the catalog directory, so a city/breed
+  // with cataloged communities but no parsed events still gets its own page and
+  // dropdown option (otherwise the navigator would link to a 404).
   const breeds = new Set();
   const metros = new Set();
   const pairs = {}; // breed -> Set(metro)
+  const addPair = (b, m) => { if (b && m) (pairs[b] ??= new Set()).add(m); };
   for (const ev of events) {
-    for (const b of ev.breeds || []) {
-      breeds.add(b);
-      if (ev.metro) { (pairs[b] ??= new Set()).add(ev.metro); }
-    }
+    for (const b of ev.breeds || []) { breeds.add(b); addPair(b, ev.metro); }
     if (ev.metro) metros.add(ev.metro);
+  }
+  for (const o of directory.values()) {
+    for (const b of o.breeds) { breeds.add(b); addPair(b, o.metro); }
+    if (o.metro) metros.add(o.metro);
   }
   const pairsArr = Object.fromEntries(Object.entries(pairs).map(([b, set]) => [b, [...set].sort()]));
   const metroLabels = Object.fromEntries([...metros].sort().map((m) => [m, R.humanizeMetro(m)]));
@@ -115,8 +134,14 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   let pages = 0;
   const emit = async (rel, html) => { await writePage(outDir, rel, html); pages++; };
 
-  // index
-  await emit('index.html', R.renderIndexPage(events, { demo, pairs: pairsArr, metroLabels, now }));
+  const dirArr = [...directory.values()];
+
+  // index (with the community directory)
+  await emit('index.html', R.renderIndexPage(events, {
+    demo, pairs: pairsArr, metroLabels, now,
+    breeds: [...breeds].sort(), metros: [...metros].sort(),
+    directory: dirArr.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
+  }));
 
   // events (+ ics)
   for (const ev of events) {
@@ -124,9 +149,8 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
     await writePage(outDir, `event/${R.safeId(ev.id)}.ics`, R.icsForEvent(ev, opts));
   }
 
-  // organizers
-  const orgs = buildOrgs(events, catalogById);
-  for (const [id, org] of orgs) {
+  // organizers — every cataloged org, even those with no upcoming events
+  for (const [id, org] of directory) {
     const evs = events.filter((e) => e.organizer_id === id);
     await emit(`org/${R.safeId(id)}.html`, R.renderOrgPage(org, evs, '../', opts));
   }
@@ -134,20 +158,23 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   // breeds
   for (const b of breeds) {
     const evs = events.filter((e) => (e.breeds || []).includes(b));
-    await emit(`breed/${R.safeId(b)}.html`, R.renderBreedPage(b, evs, '../', { now, metros: pairsArr[b] || [] }));
+    const orgs = dirArr.filter((o) => o.breeds.includes(b));
+    await emit(`breed/${R.safeId(b)}.html`, R.renderBreedPage(b, evs, '../', { now, metros: pairsArr[b] || [], orgs }));
   }
 
   // metros
   for (const m of metros) {
     const evs = events.filter((e) => e.metro === m);
-    await emit(`metro/${R.safeId(m)}.html`, R.renderMetroPage(m, evs, '../', opts));
+    const orgs = dirArr.filter((o) => o.metro === m);
+    await emit(`metro/${R.safeId(m)}.html`, R.renderMetroPage(m, evs, '../', { now, orgs }));
   }
 
-  // breed x metro combos (only pairs that exist)
+  // breed x metro combos (every pair with events OR cataloged communities)
   for (const [b, ms] of Object.entries(pairsArr)) {
     for (const m of ms) {
       const evs = events.filter((e) => (e.breeds || []).includes(b) && e.metro === m);
-      await emit(`find/${R.safeId(b)}__${R.safeId(m)}.html`, R.renderFindPage(b, m, evs, '../', opts));
+      const orgs = dirArr.filter((o) => o.breeds.includes(b) && o.metro === m);
+      await emit(`find/${R.safeId(b)}__${R.safeId(m)}.html`, R.renderFindPage(b, m, evs, '../', { now, orgs }));
     }
   }
 
