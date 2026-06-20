@@ -1,8 +1,11 @@
 name: Publish
 
-# Ingest the free feeds (+ Instagram if APIFY_TOKEN is set), build the static
-# site, and deploy it to GitHub Pages. Runs daily, on every push to main, and
-# on demand. This is the "provider-in-Actions" variant of the architecture
+# Build the static site and deploy it to GitHub Pages. The paid API ingest
+# (Apify Instagram + Claude vision) runs ONLY on the schedule and on manual
+# dispatch — a plain push to main just rebuilds and redeploys the site from the
+# already-ingested data (no API calls, no cost). So code/content/new-org pushes
+# ship immediately for free; their events get pulled on the next scheduled run or
+# a manual dispatch. This is the "provider-in-Actions" variant of the architecture
 # (brief §4 / open decision #2): all stages run in CI; no off-GitHub box, because
 # the scraping provider supplies the residential IP.
 
@@ -48,7 +51,10 @@ jobs:
       - name: Restore data store
         run: bash scripts/restore-data.sh
 
+      # Full ingest (the PAID step: Apify + Claude). Schedule + manual dispatch
+      # ONLY — never on a push, so committing never costs money.
       - name: Ingest feeds + build site
+        if: github.event_name != 'push'
         env:
           # Optional: set this repo secret to enable Instagram ingestion.
           # If unset, instagram sources are skipped and the free feeds still run.
@@ -58,14 +64,23 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Hard monthly cap on vision calls — the budget guardrail (default 100).
           VISION_MAX_CALLS_PER_MONTH: "100"
-          # Posts fetched per IG account. 5 for scheduled/push runs; a manual
-          # backfill (workflow_dispatch) can raise it to pull older posts. The
-          # vision cap above still bounds spend regardless of this value.
+          # Posts fetched per IG account. 5 for scheduled runs; a manual backfill
+          # (workflow_dispatch) can raise it to pull older posts. The vision cap
+          # above still bounds spend regardless of this value.
           IG_MAX_POSTS: ${{ inputs.max_posts || '5' }}
         run: npm run build
 
+      # A plain push just rebuilds the site from the restored store — NO ingest,
+      # NO API calls, NO cost. New orgs and site/copy changes go live right away;
+      # their events are pulled on the next scheduled run (or a manual dispatch).
+      - name: Build site only (free; push deploys)
+        if: github.event_name == 'push'
+        run: npm run build:site
+
       # Persist the durable store back to the data branch (as github-actions[bot]).
+      # Only after an ingest — a push-only run produces no new data to persist.
       - name: Persist data store
+        if: github.event_name != 'push'
         run: bash scripts/persist-data.sh
 
       - uses: actions/configure-pages@v5

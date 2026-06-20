@@ -266,17 +266,43 @@ export function eventListHtml(events, base, { now = new Date() } = {}) {
   return html;
 }
 
+// One pin per LOCATION, not per event. A venue that repeats (e.g. a monthly
+// meetup at the same address) would otherwise stack identical markers — and
+// since events are sorted soonest-first, the LAST drawn (the farthest-out date)
+// lands on top, so a click shows the most distant date and silently hides the
+// sooner ones. Grouping collapses them into a single pin whose popup lists every
+// upcoming date there, soonest first. No coordinate jitter: a pin never moves
+// off its real spot.
 function eventsToPoints(events, base) {
-  return events
-    .filter((e) => e.location?.lat != null && e.location?.lng != null)
-    .map((e) => ({
-      lat: e.location.lat, lng: e.location.lng, approx: !!e.location.approx,
-      popup: `<b>${esc(e.title)}</b><br>${esc(fmtDate(e.start, e.timezone))}<br>`
-        + (e.location.approx
-          ? '<i>Approximate area — confirm the exact spot</i>'
-          : esc(e.location.name || e.location.address || ''))
-        + `<br><a href="${eventUrl(base, e.id)}">details &amp; source</a>`,
-    }));
+  const groups = new Map();
+  for (const e of events) {
+    if (e.location?.lat == null || e.location?.lng == null) continue;
+    const approx = !!e.location.approx;
+    const key = `${e.location.lat},${e.location.lng},${approx ? 'a' : 'p'}`;
+    if (!groups.has(key)) groups.set(key, { lat: e.location.lat, lng: e.location.lng, approx, events: [] });
+    groups.get(key).events.push(e);
+  }
+  const MAX = 6; // cap popup length; overflow links to the organizer page
+  const locLine = (g) => g.approx
+    ? '<i>Approximate area — confirm the exact spot</i>'
+    : esc(g.events[0].location.name || g.events[0].location.address || '');
+  return [...groups.values()].map((g) => {
+    let popup;
+    if (g.events.length === 1) {
+      const e = g.events[0];
+      popup = `<b>${esc(e.title)}</b><br>${esc(fmtDate(e.start, e.timezone))}<br>${locLine(g)}`
+        + `<br><a href="${eventUrl(base, e.id)}">details &amp; source</a>`;
+    } else {
+      const lines = g.events.slice(0, MAX).map((e) =>
+        `<a href="${eventUrl(base, e.id)}">${esc(fmtDate(e.start, e.timezone))} · ${esc(e.title)}</a>`).join('<br>');
+      const more = g.events.length > MAX
+        ? `<br><a href="${orgUrl(base, g.events[0].organizer_id)}">+${g.events.length - MAX} more &rarr;</a>`
+        : '';
+      popup = `<b>${g.events.length} upcoming meetups ${g.approx ? 'in this area' : 'here'}</b><br>`
+        + `${locLine(g)}<br>${lines}${more}`;
+    }
+    return { lat: g.lat, lng: g.lng, approx: g.approx, popup };
+  });
 }
 
 export function pageLayout({ title, description = '', body, bodyClass = '', leaflet = false }) {
