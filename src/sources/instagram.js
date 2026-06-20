@@ -8,11 +8,31 @@
 import { fetchInstagramPosts } from '../adapters/apify-instagram.js';
 import { classifyPost } from '../extract/classify.js';
 import { extractOccurrenceFromPost } from '../extract/extract-text.js';
+import { getCursor, filterNewPosts, updateCursor } from '../store.js';
 
 export async function fetchAndExtractInstagram(handle, opts = {}) {
   const { organizer, now = new Date(), token, fetchImpl, maxPosts } = opts;
   const posts = await fetchInstagramPosts(handle, { token, fetchImpl, maxPosts, organizerId: organizer.id });
   return postsToOccurrences(posts, organizer, { now });
+}
+
+/**
+ * Stateful poll with change-detection: fetch recent posts, process only the ones
+ * not seen before, and advance the cursor (marking ALL fetched posts seen). The
+ * caller persists `newPosts` to the raw store and saves the mutated `state`.
+ * @returns {Promise<{occurrences: import('../types.js').Occurrence[], newPosts: import('../types.js').RawPost[], fetched: number}>}
+ */
+export async function pollInstagram(handle, opts = {}) {
+  const { organizer, state, now = new Date(), token, fetchImpl, maxPosts } = opts;
+  const sourceKey = `instagram:${handle}`;
+  const cursor = getCursor(state, sourceKey);
+
+  const posts = await fetchInstagramPosts(handle, { token, fetchImpl, maxPosts, organizerId: organizer.id });
+  const newPosts = filterNewPosts(posts, cursor);
+  const occurrences = postsToOccurrences(newPosts, organizer, { now });
+
+  updateCursor(state, sourceKey, posts, now.toISOString());
+  return { occurrences, newPosts, fetched: posts.length };
 }
 
 /**

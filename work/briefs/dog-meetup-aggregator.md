@@ -335,18 +335,22 @@ eliminates, that cost. Apify is mid-market, not overpriced.
      (`src/adapters/apify-instagram.js`); heuristic classifier (`src/extract/classify.js`) and
      caption-text extractor with NL date parsing (`src/extract/extract-text.js`, synthesized
      `hash(organizer+date)` ids, low-confidence → `review`); `instagram` source wired into ingest
-     with graceful no-token skip. Remaining: a live `APIFY_TOKEN`, the LLM/vision extractor for
-     flyer-IMAGE posts, and the `data/raw/`+`data/state/` store with change-detection cursors.*
+     with graceful no-token skip; **durable store + change-detection** (`src/store.js`): `data/raw/`
+     (raw posts) + `data/state/` (per-source cursors), only-new-posts processing, persisted to the
+     `data` branch by github-actions[bot] (`scripts/restore-data.sh`/`persist-data.sh`). Remaining:
+     a live `APIFY_TOKEN` and the LLM/vision extractor for flyer-IMAGE posts.*
 4. ✅ **Build the static site** with client-side breed/location search + Leaflet/OSM map.
    — *Done as a zero-dep generator (`site/`); rebuild via `npm run build`. (Astro optional later.)*
 5. ☐ **Confirm freshness/lead-time assumptions**, then expand breeds/metros; only move to Apify
    Starter (or swap providers) once free-tier limits actually bite.
 
 **CI authored (pending remote):** `.github/workflows/ci.yml` (test+validate) and `publish.yml`
-(scheduled ingest→build→Pages). Needs a GitHub remote + Pages set to "GitHub Actions" + optional
-`APIFY_TOKEN` secret to actually run.
+(scheduled restore→ingest→build→Pages, then persist the durable store to the `data` branch as
+github-actions[bot]). Durable state model: `data/raw`+`data/state` live on the `data` branch
+(committed, never on `main`); `data/events` + geocache are rebuildable each run. Needs a GitHub
+remote + Pages set to "GitHub Actions" + (optional) `APIFY_TOKEN` secret to run.
 
-**Not yet built:** the `data/raw/` store + `data/state/` cursors (change-detection); the **LLM/vision extractor** for
+**Not yet built:** the **LLM/vision extractor** for
 flyer-IMAGE posts (only caption-TEXT heuristic extraction exists today); a live `APIFY_TOKEN`;
 Facebook adapters (page/public-group); and the deferred refinements (series inference,
 venue-from-description extraction, cross-organizer dedup). Dependency note: `node-ical` (and now

@@ -1,11 +1,14 @@
-// Ingest orchestrator (scaffold): load the catalog, run each organizer's
-// supported sources, and write one JSON file per Occurrence to data/events/.
+// Ingest orchestrator: load the catalog, run each organizer's sources, geocode,
+// and write one JSON file per Occurrence to data/events/.
 //
-// Stable filename (derived from the occurrence id) makes writes idempotent —
-// re-running upserts the same files rather than creating duplicates.
+// Two source families:
+//   - Stateless FEEDS (meetup_ics/ics/eventbrite/rss): idempotently re-derived
+//     each run; no state needed.
+//   - Stateful SOCIAL (instagram): change-detection via the durable store — only
+//     new posts are processed; raw posts + cursors persist to the `data` branch.
 //
-// Only meetup_ics is implemented so far; other source types are skipped until
-// their parsers land (see work/briefs/dog-meetup-aggregator.md).
+// data/events/ is a rebuildable projection (gitignored, regenerated each run).
+// data/raw/ + data/state/ are the durable asset (committed to the `data` branch).
 //
 // CLI:  node src/ingest.js   (also: npm run ingest)
 
@@ -16,22 +19,19 @@ import { loadCatalog } from './catalog.js';
 import { fetchAndParseMeetupIcs } from './sources/meetup-ics.js';
 import { fetchAndExtractJsonLd } from './sources/jsonld.js';
 import { fetchAndParseRss } from './sources/rss.js';
-import { fetchAndExtractInstagram } from './sources/instagram.js';
+import { pollInstagram } from './sources/instagram.js';
 import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
+import { loadState, saveState, appendRawPosts } from './store.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
 const GEOCACHE_PATH = fileURLToPath(new URL('../data/geocache.json', import.meta.url));
 
-const PARSERS = {
+// Stateless feed parsers: (src, organizer) -> Occurrence[].
+const FEED_PARSERS = {
   meetup_ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
-  // Generic iCalendar feeds (city dog-calendars, breed clubs) — same parser.
   ics: (src, organizer) => fetchAndParseMeetupIcs(src.url, { organizer }),
-  // Eventbrite (and any page with schema.org Event JSON-LD).
   eventbrite: (src, organizer) => fetchAndExtractJsonLd(src.url, { organizer, sourceType: 'eventbrite' }),
-  // RSS/Atom feed of event pages (follows links to extract JSON-LD events).
   rss: async (src, organizer) => (await fetchAndParseRss(src.url, { organizer })).occurrences,
-  // Instagram via the Apify adapter (needs APIFY_TOKEN; skipped gracefully if unset).
-  instagram: (src, organizer) => fetchAndExtractInstagram(src.handle, { organizer }),
 };
 
 function safeFilename(id) {
@@ -42,27 +42,42 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   const organizers = await loadCatalog();
   await mkdir(eventsDir, { recursive: true });
   const geocache = await loadCache(geocachePath);
+  const now = new Date();
 
   let written = 0;
   let skipped = 0;
+
   for (const org of organizers) {
+    const writeOccurrences = async (occurrences) => {
+      await enrichOccurrenceLocations(occurrences, { organizer: org, cache: geocache });
+      for (const occ of occurrences) {
+        await writeFile(join(eventsDir, safeFilename(occ.id)), JSON.stringify(occ, null, 2) + '\n');
+      }
+      written += occurrences.length;
+    };
+
+    const state = await loadState(org.id);
+    let stateDirty = false;
+
     for (const src of org.sources) {
       if (src.enabled === false) continue;
-      const parser = PARSERS[src.type];
-      if (!parser) {
-        skipped++;
-        continue; // not implemented yet
-      }
       try {
-        const occurrences = await parser(src, org);
-        await enrichOccurrenceLocations(occurrences, { organizer: org, cache: geocache });
-        for (const occ of occurrences) {
-          await writeFile(
-            join(eventsDir, safeFilename(occ.id)),
-            JSON.stringify(occ, null, 2) + '\n',
-          );
-          written++;
+        if (src.type === 'instagram') {
+          const { occurrences, newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now });
+          stateDirty = true;
+          await appendRawPosts(org.id, newPosts);
+          await writeOccurrences(occurrences);
+          console.error(`${org.id}: ${occurrences.length} event(s) from ${newPosts.length} new post(s) (${fetched} fetched) [instagram]`);
+          continue;
         }
+
+        const parser = FEED_PARSERS[src.type];
+        if (!parser) {
+          skipped++;
+          continue; // unimplemented source type
+        }
+        const occurrences = await parser(src, org);
+        await writeOccurrences(occurrences);
         console.error(`${org.id}: ${occurrences.length} occurrence(s) from ${src.type}`);
       } catch (err) {
         if (err && err.code === 'NO_TOKEN') {
@@ -73,7 +88,10 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
         }
       }
     }
+
+    if (stateDirty) await saveState(state);
   }
+
   await saveCache(geocachePath, geocache);
   console.error(`\nWrote ${written} occurrence file(s) to ${eventsDir}` +
     (skipped ? ` (${skipped} source(s) skipped — see notes above)` : ''));

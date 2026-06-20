@@ -14,7 +14,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write # push the durable store to the `data` branch
   pages: write
   id-token: write
 
@@ -31,21 +31,17 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so we can push the data branch
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
 
-      # Persist the geocode cache across runs so we don't re-query Nominatim
-      # every build (politeness + speed). Unique key always saves; restore-keys
-      # pulls the most recent prior cache.
-      - uses: actions/cache@v4
-        with:
-          path: data/geocache.json
-          key: geocache-${{ github.run_id }}
-          restore-keys: |
-            geocache-
+      # Restore the durable store (raw posts, cursors, geocache) from the data branch.
+      - name: Restore data store
+        run: bash scripts/restore-data.sh
 
       - name: Ingest feeds + build site
         env:
@@ -53,6 +49,10 @@ jobs:
           # If unset, instagram sources are skipped and the free feeds still run.
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
         run: npm run build
+
+      # Persist the durable store back to the data branch (as github-actions[bot]).
+      - name: Persist data store
+        run: bash scripts/persist-data.sh
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
