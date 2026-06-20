@@ -34,6 +34,12 @@ test('builds the multi-page site from demo data with cross-linked pages', async 
     assert.doesNotMatch(breed, /<script/i, 'no script on subpage');
     assert.match(breed, /Open in Maps|📍 map/);
 
+    // Combo pages are reachable without JS (crawlable) from breed pages and the
+    // index browse directory links to the breed/metro pages.
+    assert.match(breed, /find\/shih-tzu__dc\.html/, 'breed page links to combo (no-JS path)');
+    assert.match(index, /breed\/shih-tzu\.html/, 'index browse links to breed page');
+    assert.match(index, /metro\/dc\.html/, 'index browse links to metro page');
+
     // An event page + its .ics exist.
     const evHref = index.match(/event\/([^"]+)\.html/);
     assert.ok(evHref, 'index links to an event page');

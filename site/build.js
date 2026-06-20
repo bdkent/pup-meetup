@@ -134,7 +134,7 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   // breeds
   for (const b of breeds) {
     const evs = events.filter((e) => (e.breeds || []).includes(b));
-    await emit(`breed/${R.safeId(b)}.html`, R.renderBreedPage(b, evs, '../', opts));
+    await emit(`breed/${R.safeId(b)}.html`, R.renderBreedPage(b, evs, '../', { now, metros: pairsArr[b] || [] }));
   }
 
   // metros

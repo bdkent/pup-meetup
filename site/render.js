@@ -39,6 +39,8 @@ main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 122px)
 .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--accent)}
 .approx{color:var(--muted);font-style:italic}
 .empty{color:var(--muted);padding:24px 0;text-align:center}
+.browse{margin:6px 0 14px;display:flex;flex-direction:column;gap:6px}
+.browse-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:6px}
 .group-label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 8px;font-weight:600}
 .org-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
 .avatar{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:18px;flex:none}
@@ -185,8 +187,13 @@ document.getElementById('go').addEventListener('click',go);
 
 export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels = {}, now = new Date() } = {}) {
   const breeds = [...new Set(events.flatMap((e) => e.breeds || []))].sort();
+  const metros = Object.keys(metroLabels).sort();
   const opt = (slug, label) => `<option value="${esc(slug)}">${esc(label)}</option>`;
   const points = eventsToPoints(events, '');
+  const browse = `<div class="browse">
+    <div><span class="browse-label">Browse breeds</span>${breeds.map((b) => chip(humanizeBreed(b), breedUrl('', b))).join('')}</div>
+    <div><span class="browse-label">Browse cities</span>${metros.map((m) => chip(metroLabels[m], metroUrl('', m))).join('')}</div>
+  </div>`;
 
   const body = `<header class="app">
     <h1>🐾 pup-meetup <small>— upcoming dog meetups</small></h1>
@@ -198,7 +205,7 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
   </header>
   ${demo ? '<div class="demo-banner">⚠️ Demo data — sample events for UI testing, not real listings.</div>' : ''}
   <main class="split">
-    <section id="list"><p class="count">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>${eventListHtml(events, '', { now })}</section>
+    <section id="list"><p class="count">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>${browse}${eventListHtml(events, '', { now })}</section>
     <div id="map" class="map"></div>
   </main>
   <script src="${LEAFLET_JS}"></script>
@@ -230,12 +237,15 @@ export function renderOrgPage(org, events, base, { now = new Date() } = {}) {
   return pageLayout({ title: `${org.name} — pup-meetup`, description: `Upcoming meetups from ${org.name}.`, body });
 }
 
-export function renderBreedPage(breedSlug, events, base, { now = new Date() } = {}) {
+export function renderBreedPage(breedSlug, events, base, { now = new Date(), metros = [] } = {}) {
   const label = humanizeBreed(breedSlug);
+  const byCity = metros.length
+    ? `<div class="browse"><span class="browse-label">By city</span>${metros.map((m) => chip(humanizeMetro(m), findUrl(base, breedSlug, m))).join('')}</div>` : '';
   const body = `${topbar(base)}<div class="wrap">
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a></p>
     <h1>${esc(label)} meetups</h1>
     <p class="count">${events.length} upcoming ${esc(label)} meetup${events.length === 1 ? '' : 's'}</p>
+    ${byCity}
     ${eventListHtml(events, base, { now })}
   </div>`;
   return pageLayout({ title: `${label} dog meetups — pup-meetup`, description: `Upcoming ${label} dog meetups.`, body });
@@ -247,8 +257,8 @@ export function renderMetroPage(metroSlug, events, base, { now = new Date() } = 
   const body = `${topbar(base)}<div class="wrap">
     <p class="breadcrumb"><a href="${homeUrl(base)}">← all meetups</a></p>
     <h1>Dog meetups in ${esc(label)}</h1>
-    <div class="tags">${breeds.map((b) => chip(humanizeBreed(b), breedUrl(base, b))).join('')}</div>
     <p class="count" style="margin-top:10px">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>
+    <div class="browse"><span class="browse-label">By breed</span>${breeds.map((b) => chip(humanizeBreed(b), findUrl(base, b, metroSlug))).join('')}</div>
     ${eventListHtml(events, base, { now })}
   </div>`;
   return pageLayout({ title: `Dog meetups in ${label} — pup-meetup`, description: `Upcoming dog meetups in ${label}.`, body });
