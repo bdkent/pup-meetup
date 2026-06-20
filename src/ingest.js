@@ -56,6 +56,10 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   const visionBudget = makeVisionBudget(visionUsage, { now });
   const visionCache = await loadVisionCache(); // per-post vision results (re-derive for free)
   const venueCache = {}; // in-run cache of event-page venues (dedups recurring series)
+  // How many recent posts to fetch per Instagram account. Default (adapter) is 5
+  // for steady-state runs; a one-off backfill sets IG_MAX_POSTS higher to pull
+  // older announcements into the durable raw archive (they then persist for free).
+  const igMaxPosts = Number(process.env.IG_MAX_POSTS) || undefined;
 
   let written = 0;
   let skipped = 0;
@@ -79,7 +83,7 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
           // pollInstagram advances the change-detection cursor and returns the new
           // posts; we re-extract them vision-first (the cheap text occurrences it
           // also returns are ignored in favour of the flyer-reading path).
-          const { newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now });
+          const { newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now, maxPosts: igMaxPosts });
           stateDirty = true;
           await appendRawPosts(org.id, newPosts);
           // Re-derive from the FULL durable raw archive (cache-backed) so events

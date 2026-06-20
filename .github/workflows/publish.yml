@@ -10,6 +10,11 @@ on:
   schedule:
     - cron: "0 11 * * *" # daily ~11:00 UTC
   workflow_dispatch:
+    inputs:
+      max_posts:
+        description: "Instagram posts to fetch per account (one-off backfill; steady-state is 5)"
+        default: "5"
+        required: false
   push:
     branches: [main]
 
@@ -53,6 +58,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Hard monthly cap on vision calls — the budget guardrail (default 100).
           VISION_MAX_CALLS_PER_MONTH: "100"
+          # Posts fetched per IG account. 5 for scheduled/push runs; a manual
+          # backfill (workflow_dispatch) can raise it to pull older posts. The
+          # vision cap above still bounds spend regardless of this value.
+          IG_MAX_POSTS: ${{ inputs.max_posts || '5' }}
         run: npm run build
 
       # Persist the durable store back to the data branch (as github-actions[bot]).
