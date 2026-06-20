@@ -1,0 +1,182 @@
+{
+  "3687751670855961330": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3701558603731756131": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3719501899449358706": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3750888270873045968": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3917626531740740032": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3903839268031073186": {
+    "is_event": true,
+    "title": "Los Angeles Shih Tzus Pizza Party",
+    "date": "2025-06-21",
+    "time": "17:00",
+    "venue": "Secret Pizza",
+    "address": "3501 Monterey Rd, Los Angeles, CA 90032",
+    "confidence": 0.95
+  },
+  "3903851672438823998": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "3903874501090811627": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "3906617005003535489": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.2
+  },
+  "3921556950384099519": {
+    "is_event": true,
+    "title": "Stars, Stripes & Struts Mega Pack Walk",
+    "date": "2025-07-11",
+    "time": "09:00",
+    "venue": "Downtown Los Angeles",
+    "address": null,
+    "confidence": 0.95
+  },
+  "3149187945965632220": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3207916457622987333": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3246242033677407207": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3264350954316516424": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3332028336258609583": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3879206357035905641": {
+    "is_event": true,
+    "title": "NYC Shih Tzu Meetup",
+    "date": "2025-10-11",
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.75
+  },
+  "3879725417590528814": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3881430016408389673": {
+    "is_event": true,
+    "title": "NYC Shih Tzu Meetup - Halloween Costume Party",
+    "date": "2026-10-11",
+    "time": "13:00",
+    "venue": "TBD",
+    "address": null,
+    "confidence": 0.95
+  },
+  "3922468863494974002": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3923195493995858662": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  }
+}
