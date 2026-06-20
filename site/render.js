@@ -478,6 +478,43 @@ export function renderFindPage(breedSlug, metroSlug, events, base, { now = new D
   return pageLayout({ title: `${bl} meetups in ${ml} — pup-meetup`, description: `Upcoming ${bl} dog meetups in ${ml}.`, body });
 }
 
+const SITE_ORIGIN = 'https://pup-meetup.com';
+
+// schema.org Event JSON-LD for an event detail page: makes events eligible for
+// search rich results and gives crawlers/AI a clean, *citable* machine-readable
+// record (the "be the source the AI quotes" play). Uses absolute canonical URLs.
+// Location safety: precise geo coordinates are emitted ONLY for a confirmed spot,
+// never for an approximate area — the same marker-vs-shaded-circle rule as the map.
+function eventJsonLd(ev) {
+  const loc = ev.location || {};
+  const precise = loc.lat != null && loc.lng != null && !loc.approx;
+  const place = { '@type': 'Place', name: loc.name || loc.address || (ev.metro ? humanizeMetro(ev.metro) : 'Location to be confirmed') };
+  if (loc.address) place.address = loc.address;
+  if (precise) place.geo = { '@type': 'GeoCoordinates', latitude: loc.lat, longitude: loc.lng };
+
+  const desc = ev.sources?.find((s) => s.raw_text)?.raw_text;
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: ev.title,
+    startDate: ev.start,
+    ...(ev.end ? { endDate: ev.end } : {}),
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    eventStatus: 'https://schema.org/EventScheduled',
+    location: place,
+    url: `${SITE_ORIGIN}/event/${safeId(ev.id)}.html`,
+    ...(ev.organizer_name ? {
+      organizer: {
+        '@type': 'Organization',
+        name: ev.organizer_name,
+        ...(ev.organizer_id ? { url: `${SITE_ORIGIN}/org/${safeId(ev.organizer_id)}.html` } : {}),
+      },
+    } : {}),
+    ...(desc ? { description: String(desc).trim().slice(0, 500) } : {}),
+  };
+  return `<script type="application/ld+json">${jsonScript(data)}</script>`;
+}
+
 export function renderEventPage(ev, base, { now = new Date() } = {}) {
   const loc = ev.location || {};
   const precise = loc.lat != null && loc.lng != null && !loc.approx;
@@ -506,7 +543,7 @@ export function renderEventPage(ev, base, { now = new Date() } = {}) {
     </div>
     <div class="confirm">⚠️ This listing is auto-collected and may be imperfect — always confirm the date, time, and exact location at the source before you go${sourceLinks ? `: ${sourceLinks}` : '.'}</div>
     ${desc ? `<div class="desc">${esc(desc)}</div>` : ''}
-  </div>`;
+  </div>${eventJsonLd(ev)}`;
   return pageLayout({ title: `${ev.title} — pup-meetup`, description: `${ev.title} on ${fmtDate(ev.start, ev.timezone)}.`, body });
 }
 
