@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research. Charlotte small-dogs group; dormant
+# at recon (last event 2024-10) but kept as a free, zero-maintenance source that
+# will auto-surface events if it revives. Token-free iCal.
+id: charlotte-small-dogs
+name: Charlotte Small Dogs
+breeds:
+  - small-breeds
+metro: charlotte
+timezone: America/New_York
+home_geo:
+  lat: 35.2271
+  lng: -80.8431
+poll_interval: weekly
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/charlotte-nc-small-dogs-meetup-group/events/ical/
+    notes: Dormant at recon (last event 2024-10); verify before relying on it.

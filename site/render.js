@@ -9,10 +9,16 @@
 // (everything else), so the site works at any GitHub Pages base path. CSS is
 // inlined. JSON in <script> has '<' escaped to avoid </script> breakouts.
 
+import * as G from './graphics.js';
+
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-const REPO_URL = 'https://github.com/bdkent/pup-meetup';
-const SUBMIT_URL = 'https://github.com/bdkent/pup-meetup/issues/new?title=List%20my%20community&body=Community%20name%3A%0ACity%2Fmetro%3A%0ABreed(s)%3A%0APublic%20link(s)%20(Instagram%2C%20Meetup%2C%20Eventbrite%2C%20etc.)%3A';
+// Organizers reach us by plain email (no account, no GitHub) — see get-listed.
+// The address is a forwarder on the project's own domain, so it stays private
+// and the alias is a one-line swap here.
+const CONTACT_EMAIL = 'hello@pup-meetup.com';
+const SUBMIT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('List my dog community on pup-meetup')}`
+  + `&body=${encodeURIComponent('Community name:\nCity / town:\nBreed(s):\nWhere you post your meetups (Instagram, Meetup, Eventbrite, or website):\n')}`;
 
 export const CSS = `
 :root{--fg:#1c1c1e;--muted:#6b6b70;--line:#e6e6ea;--accent:#7c4dff;--bg:#fafafb;--chip:#f0ecff}
@@ -68,7 +74,29 @@ main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 166px)
 .cta{display:inline-block;margin:6px 0;padding:10px 16px;background:var(--accent);color:#fff;border-radius:8px;font-weight:600}
 .cta:hover{text-decoration:none;opacity:.92}
 .callout{margin:18px 0;padding:12px 14px;border:1px solid #ffe1a8;background:#fff7e6;color:#8a6d3b;border-radius:10px;font-size:14px}
-@media (max-width:760px){main.split{grid-template-columns:1fr;height:auto}main.split .map{height:48vh}}
+html{scroll-behavior:smooth}
+/* graphics: paws, badges, mascot */
+.paw{display:inline-block;width:1em;height:1em;vertical-align:-.15em;fill:currentColor}
+.brand{display:inline-flex;align-items:center;gap:6px}
+.brand .paw{width:18px;height:18px;color:var(--accent)}
+.hero-pup{width:42px;height:42px;vertical-align:-13px;margin-right:4px}
+.pawhr{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px 0;color:var(--accent)}
+.pawhr span{flex:1;max-width:150px;height:1px;background:var(--line)}
+.pawhr .paw{width:17px;height:17px;opacity:.7}
+.pawhr .p1{transform:rotate(-18deg)}
+.pawhr .p2{width:23px;height:23px;opacity:.95}
+.pawhr .p3{transform:rotate(18deg)}
+.city-head{display:flex;align-items:center;gap:8px;scroll-margin-top:18px}
+.flag.badge{height:16px;width:auto;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);flex:none}
+.city.badge{height:15px;width:auto;color:var(--accent);opacity:.75;flex:none}
+.orgmap{height:340px;border-radius:14px;overflow:hidden;border:1px solid var(--line);margin:14px 0 4px}
+.map-hint{font-size:12px;color:var(--muted);margin:0 0 8px}
+.corner-paws{position:fixed;inset:0;pointer-events:none;z-index:-1;color:var(--accent)}
+.corner-paws .cp{position:absolute;opacity:.05}
+.corner-paws .cp1{top:84px;left:-24px;width:130px;height:130px;transform:rotate(-22deg)}
+.corner-paws .cp2{bottom:36px;right:-12px;width:150px;height:150px;transform:rotate(24deg)}
+.corner-paws .cp3{top:42%;right:7%;width:74px;height:74px;transform:rotate(10deg)}
+@media (max-width:760px){main.split{grid-template-columns:1fr;height:auto}main.split .map{height:48vh}.corner-paws{display:none}.orgmap{height:260px}}
 `;
 
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
@@ -147,23 +175,58 @@ function communitiesSection(orgs, base, label) {
 // from the top nav) so the site is useful before any events are parsed (e.g.
 // Instagram-only organizers): every cataloged community is visible with a link
 // to follow, plus a prominent "get listed" CTA for new organizers.
-export function renderOrganizersPage(directory, base, { metroLabels = {} } = {}) {
+export function renderOrganizersPage(directory, base, { metroLabels = {}, metroPoints = {} } = {}) {
   const byMetro = {};
   for (const o of directory || []) (byMetro[o.metro || 'other'] ??= []).push(o);
   const metros = Object.keys(byMetro).sort();
+  const metroLabel = (m) => (metroLabels && metroLabels[m]) || humanizeMetro(m);
+
+  // City sections, each anchored by its metro slug so the map can jump to it,
+  // with a flag (where clean) or skyline badge in the heading.
   const blocks = metros.map((m) => {
-    const label = (metroLabels && metroLabels[m]) || humanizeMetro(m);
-    const heading = m === 'other' ? esc(label) : `<a href="${metroUrl(base, m)}">${esc(label)}</a>`;
-    return `<div class="group-label">${heading}</div>` + byMetro[m].map((o) => orgCardHtml(o, base)).join('');
+    const heading = m === 'other' ? esc(metroLabel(m)) : `<a href="${metroUrl(base, m)}">${esc(metroLabel(m))}</a>`;
+    const badge = m === 'other' ? '' : G.cityBadge(m);
+    return `<h2 class="group-label city-head" id="${safeId(m)}">${badge}${heading}</h2>`
+      + byMetro[m].map((o) => orgCardHtml(o, base)).join('');
   }).join('');
+
+  // Region map: one pin per metro we have coordinates for; each popup jumps to
+  // that city's section below (people look for organizers physically near them).
+  const mapPts = metros
+    .filter((m) => m !== 'other' && metroPoints[m])
+    .map((m) => {
+      const n = byMetro[m].length;
+      return {
+        lat: metroPoints[m].lat, lng: metroPoints[m].lng,
+        popup: `<b>${esc(metroLabel(m))}</b><br>${n} organizer${n === 1 ? '' : 's'}<br><a href="#${safeId(m)}">Jump to ${esc(metroLabel(m))} &rarr;</a>`,
+      };
+    });
+  const hasMap = mapPts.length > 0;
+  const mapBlock = hasMap
+    ? '<div id="orgmap" class="orgmap"></div><p class="map-hint">Click the map to zoom (scroll); tap a pin to jump to that city below.</p>'
+    : '';
+  // scrollWheelZoom starts off so the wheel scrolls the page; clicking the map
+  // (focus) turns it on, clicking away (blur) turns it back off — wheel zoom
+  // without hijacking page scroll, and zero extra dependencies.
+  const mapScript = hasMap ? `<script src="${LEAFLET_JS}"></script><script>
+  (function(){var pts=${jsonScript(mapPts)};var map=L.map('orgmap',{scrollWheelZoom:false});
+   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+   map.on('focus',function(){map.scrollWheelZoom.enable();});
+   map.on('blur',function(){map.scrollWheelZoom.disable();});
+   var b=[];for(var i=0;i<pts.length;i++){var p=pts[i];L.marker([p.lat,p.lng]).addTo(map).bindPopup(p.popup);b.push([p.lat,p.lng]);}
+   if(b.length>1)map.fitBounds(b,{padding:[50,50],maxZoom:9});else map.setView(b[0],10);})();
+  </script>` : '';
+
   const count = (directory || []).length;
-  const body = `${topbar(base, 'organizers')}<div class="wrap">
+  const body = `${topbar(base, 'organizers')}${G.cornerPaws()}<div class="wrap">
     <h1 style="font-size:24px;margin:.1em 0 6px">Communities we're tracking</h1>
     <p class="count">${count} organizer${count === 1 ? '' : 's'} across ${metros.length} cit${metros.length === 1 ? 'y' : 'ies'} — follow them for meetup announcements.</p>
     <p><a class="cta" href="${getListedUrl(base)}">＋ Get your community listed</a></p>
+    ${mapBlock}
+    ${G.pawDivider()}
     ${blocks || '<p class="empty">No communities yet — check back soon.</p>'}
-  </div>`;
-  return pageLayout({ title: 'Organizers & communities — pup-meetup', description: 'Dog-meetup organizers and communities we track, grouped by city.', body });
+  </div>${mapScript}`;
+  return pageLayout({ title: 'Organizers & communities — pup-meetup', description: 'Dog-meetup organizers and communities we track, grouped by city.', body, leaflet: hasMap });
 }
 
 function mapsLink(ev) {
@@ -222,6 +285,7 @@ export function pageLayout({ title, description = '', body, bodyClass = '', leaf
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
+<link rel="icon" href="${G.FAVICON}">
 ${leaflet ? `<link rel="stylesheet" href="${LEAFLET_CSS}" crossorigin=""/>` : ''}
 <style>${CSS}</style>
 </head><body class="${bodyClass}">${body}</body></html>`;
@@ -241,7 +305,7 @@ function navHtml(base, active = '') {
     `<a href="${url(base)}"${key === active ? ' class="active"' : ''}>${esc(label)}</a>`).join('');
 }
 const topbar = (base, active = '') => `<header class="topbar">
-  <a class="brand" href="${homeUrl(base)}">🐾 pup-meetup</a>
+  <a class="brand" href="${homeUrl(base)}">${G.pawSvg()}pup-meetup</a>
   <nav>${navHtml(base, active)}</nav>
 </header>`;
 
@@ -294,7 +358,7 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
   </div>`;
 
   const body = `${topbar('', '')}<header class="app">
-    <h1>🐾 pup-meetup <small>— upcoming dog meetups</small></h1>
+    <h1>${G.shihTzuMark('hero-pup')}pup-meetup <small>— upcoming dog meetups</small></h1>
     <div class="controls">
       <select id="breed"><option value="">Any breed</option>${breeds.map((b) => opt(b, humanizeBreed(b))).join('')}</select>
       <select id="metro"><option value="">Any location</option>${metros.map((m) => opt(m, metroLabels[m] || humanizeMetro(m))).join('')}</select>
@@ -417,60 +481,48 @@ export function renderEventPage(ev, base, { now = new Date() } = {}) {
 }
 
 export function renderAboutPage(base, { now = new Date() } = {}) {
-  const body = `${topbar(base, 'about')}<div class="wrap prose">
+  const body = `${topbar(base, 'about')}${G.cornerPaws()}<div class="wrap prose">
     <h1>About pup-meetup</h1>
-    <p class="lede">A free, automatically-updated directory of breed-specific dog meetups — starting with Shih&nbsp;Tzu.</p>
-    <p>Dog meetups are scattered across a dozen platforms — an Instagram account here, a Meetup group there, an Eventbrite somewhere else. pup-meetup pulls them into one place so you can find what's coming up near you, browse by breed and city, and see it all on a map.</p>
+    <p class="lede">A free, friendly directory of dog meetups — find what's happening near you, starting with Shih&nbsp;Tzu.</p>
+    <p>Dog meetups get announced all over the place — one group on Instagram, another on Meetup, a flyer somewhere else. pup-meetup gathers them into one spot, so you can see what's coming up near you, browse by breed and city, and find it on a map.</p>
+    ${G.pawDivider()}
+    <h2>Always double-check before you go</h2>
+    <p>We bring these listings together from what organizers share publicly, so a detail can occasionally be out of date. We're especially careful with locations: if we're not sure exactly where a meetup is, we show a general area on the map instead of a pin, and we say so. <strong>Always confirm the date, time, and place with the organizer before you head out.</strong></p>
 
-    <h2>How it works</h2>
-    <p>We watch the public sources that organizers already post to — Instagram accounts, Meetup groups, Eventbrite pages — and pull out the event details automatically. For Instagram, that often means reading the flyer <em>image</em>, since the date, time, and venue usually live on the graphic rather than in the caption. Everything refreshes on its own, so the site stays current without anyone updating it by hand.</p>
+    <h2>Free, no catch</h2>
+    <p>pup-meetup is a small passion project. It's free, there are no ads, and you don't need an account or a login. Notice something that looks wrong? Email us at <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> — we'd genuinely love to hear from you.</p>
 
-    <h2>Always confirm before you go</h2>
-    <p>Listings here are auto-collected and can be imperfect. We're careful with locations: we <strong>never drop a precise map pin unless we're confident of the exact spot</strong> — when we're unsure, the map shows a shaded general area instead of a marker, and the event page says so. Treat every listing as a pointer back to the organizer, and <strong>always confirm the date, time, and exact location at the original source</strong> before heading out.</p>
-
-    <h2>Free &amp; open</h2>
-    <p>This is a hobby project — no ads, no tracking, no accounts. The code is open source on <a href="${REPO_URL}">GitHub</a>; spot something wrong? <a href="${REPO_URL}/issues/new">Open an issue</a>.</p>
-
-    <h2>Run a dog-meetup community?</h2>
+    <h2>Run a dog-meetup group?</h2>
     <p>We'd love to include you. <a href="${getListedUrl(base)}">Here's how to get listed →</a></p>
   </div>`;
-  return pageLayout({ title: 'About — pup-meetup', description: 'What pup-meetup is, how it collects dog meetups, and why you should always confirm at the source.', body });
+  return pageLayout({ title: 'About — pup-meetup', description: 'What pup-meetup is, and why you should always confirm meetup details with the organizer.', body });
 }
 
 export function renderGetListedPage(base, { now = new Date() } = {}) {
-  const body = `${topbar(base, 'get-listed')}<div class="wrap prose">
+  const body = `${topbar(base, 'get-listed')}${G.cornerPaws()}<div class="wrap prose">
     <h1>Get your community listed</h1>
-    <p class="lede">Run a dog-meetup community? We'd love to add you to pup-meetup. It's free, and it takes one message.</p>
-    <p><a class="cta" href="${SUBMIT_URL}">＋ Submit your community on GitHub</a></p>
-
-    <h2>What we need</h2>
-    <p>A <strong>public source we can read automatically</strong> — pick whichever you already use:</p>
+    <p class="lede">Run a dog-meetup group? We'd love to add you to pup-meetup. It's free, and it's just one email — no account, no sign-up.</p>
+    <p><a class="cta" href="${SUBMIT_MAILTO}">✉️ Email us to get listed</a></p>
+    <p class="count">Or write to us directly at <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.</p>
+    ${G.pawDivider()}
+    <h2>Just tell us</h2>
     <ul>
-      <li>A <strong>public Instagram</strong> account (we read your flyer images for the date, time, and venue)</li>
-      <li>A <strong>Meetup</strong> group with a public calendar</li>
-      <li>An <strong>Eventbrite</strong> organizer page</li>
-      <li>Any website with an <strong>events RSS feed</strong></li>
+      <li>Your group or community name</li>
+      <li>Your city or town</li>
+      <li>What breed(s) — we started with Shih&nbsp;Tzu, but tell us yours</li>
+      <li>Where you post your meetups — an Instagram, Meetup, Eventbrite, or website link</li>
     </ul>
 
-    <h2>How to submit</h2>
-    <p><a href="${SUBMIT_URL}">Open a GitHub issue</a> (no account info needed beyond GitHub) and tell us:</p>
-    <ol>
-      <li>Your community / organizer name</li>
-      <li>City or metro area</li>
-      <li>Breed(s) — we're focused on Shih&nbsp;Tzu first, but tell us yours</li>
-      <li>The public link(s) from the list above</li>
-    </ol>
-
-    <h2>Tips so your events show up accurately</h2>
+    <h2>A few tips so your meetups show up right</h2>
     <ul>
-      <li>Put the <strong>date, start time, and exact venue right on the flyer image</strong> — that's what we read.</li>
-      <li>Use a <strong>real, specific address</strong>. We never guess: a vague "DM for location" or "TBD" won't get a map pin.</li>
-      <li>Post <strong>upcoming</strong> dates — we only list events in the future.</li>
+      <li>Put the <strong>date, start time, and address right on your flyer or post</strong> — that's what people look for.</li>
+      <li>Use a <strong>real, specific address</strong>. If a spot just says "DM for the location," we'll leave it off the map rather than guess.</li>
+      <li>Post <strong>upcoming</strong> dates — we only show meetups that haven't happened yet.</li>
     </ul>
 
-    <div class="callout">📍 Location safety: we will never place a precise pin unless we're sure of the spot, because we never want anyone driving to the wrong place. Help us out with clear, accurate addresses.</div>
+    <div class="callout">📍 We'll never drop a map pin somewhere we're not sure about — we never want to send anyone to the wrong place. Clear, accurate addresses help everyone.</div>
   </div>`;
-  return pageLayout({ title: 'Get listed — pup-meetup', description: 'How dog-meetup organizers can get their community listed on pup-meetup.', body });
+  return pageLayout({ title: 'Get listed — pup-meetup', description: 'How dog-meetup organizers can get their community listed on pup-meetup — just send us an email.', body });
 }
 
 function labelForType(type) {

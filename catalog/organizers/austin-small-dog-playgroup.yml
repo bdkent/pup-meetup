@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research. Austin small-dog play group; the
+# group description explicitly names Shih Tzu. Token-free iCal.
+id: austin-small-dog-playgroup
+name: Austin Small Dog Play Group
+breeds:
+  - small-breeds
+metro: austin
+timezone: America/Chicago
+home_geo:
+  lat: 30.2672
+  lng: -97.7431
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/austin-small-dog-play-group/events/ical/

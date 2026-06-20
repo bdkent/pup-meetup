@@ -1,0 +1,18 @@
+# Added 2026-06-20 from organizer research. Fabulous Dogs of Atlanta — a
+# multi-breed Atlanta social dog club (founded by @sparklesthediva, a Shih Tzu).
+# Directory link only until in-person meetup cadence is confirmed.
+id: atlanta-fabulous-dogs
+name: Fabulous Dogs of Atlanta
+breeds:
+  - all-breeds
+metro: atlanta
+timezone: America/New_York
+home_geo:
+  lat: 33.7490
+  lng: -84.3880
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: fabulousdogsofatlanta
+    enabled: false
+    notes: Multi-breed social club; directory link only until in-person cadence is confirmed.

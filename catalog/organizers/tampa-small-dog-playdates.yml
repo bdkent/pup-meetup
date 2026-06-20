@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Tampa/St. Pete
+# small-dog playdates (Shih Tzu fits). Valid iCal but no events scheduled at recon
+# — will auto-surface when the organizer posts. Token-free.
+id: tampa-small-dog-playdates
+name: Tampa Bay Small Dog Playdates
+breeds:
+  - small-breeds
+metro: tampa
+timezone: America/New_York
+home_geo:
+  lat: 27.9506
+  lng: -82.4572
+poll_interval: weekly
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/tampabayplaydates/events/ical/
+    notes: Valid feed, 0 upcoming events at recon (2026-06); populates when scheduled.

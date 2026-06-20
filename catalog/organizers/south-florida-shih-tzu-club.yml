@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research. South Florida Shih Tzu Club —
+# breed-specific community (Instagram + Eventbrite); confirmed in-person events.
+id: south-florida-shih-tzu-club
+name: South Florida Shih Tzu Club
+breeds:
+  - shih-tzu
+metro: miami
+timezone: America/New_York
+home_geo:
+  lat: 25.7617
+  lng: -80.1918
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: soflo_shihtzus

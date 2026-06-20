@@ -105,11 +105,15 @@ test('emits About + Get-listed pages, reachable from the nav, and zero-JS', asyn
     const about = await readFile(join(out, 'about.html'), 'utf8');
     assert.match(about, /About pup-meetup/);
     assert.match(about, /always confirm/i, 'about repeats the confirm-at-source safety message');
+    assert.doesNotMatch(about, /github/i, 'about is de-teched: no GitHub references for a non-technical audience');
+    assert.match(about, /mailto:hello@pup-meetup\.com/, 'about offers a plain email contact');
     assert.doesNotMatch(about, /<script/i, 'static pages stay zero-JS');
 
     const listed = await readFile(join(out, 'get-listed.html'), 'utf8');
     assert.match(listed, /Get your community listed/);
-    assert.match(listed, /github\.com\/bdkent\/pup-meetup\/issues/, 'links to a submission channel');
+    // Submission is a plain email (organizers won't have/want a GitHub account).
+    assert.match(listed, /mailto:hello@pup-meetup\.com/, 'links to an email submission channel');
+    assert.doesNotMatch(listed, /github\.com/i, 'no GitHub jargon on the get-listed page');
     assert.doesNotMatch(listed, /<script/i);
 
     // Every page carries the same nav (check a deep subpage uses ../ links).

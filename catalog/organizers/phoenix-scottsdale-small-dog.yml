@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research. Scottsdale/Phoenix small-dog play
+# group (dogs under 15 lb; Shih Tzu fits). Seasonal cadence. Token-free iCal.
+id: phoenix-scottsdale-small-dog
+name: Scottsdale Small Dog Play Group
+breeds:
+  - small-breeds
+metro: phoenix
+timezone: America/Phoenix
+home_geo:
+  lat: 33.4942
+  lng: -111.9261
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/scottsdalesmalldogplaygroup/events/ical/

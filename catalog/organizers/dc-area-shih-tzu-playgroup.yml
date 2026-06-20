@@ -8,6 +8,9 @@ breeds:
   - shih-tzu
 metro: dc
 timezone: America/New_York
+home_geo:
+  lat: 38.9072
+  lng: -77.0369
 poll_interval: daily
 sources:
   - type: meetup_ics

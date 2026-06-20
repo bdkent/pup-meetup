@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Portland
+# Dog-Lovers "PeeWees, Toys, Minis & Small Dogs" — active weekly small-dog
+# meetups (Shih Tzu fits). Token-free iCal.
+id: portland-small-dog-meetup
+name: Portland Small Dog Meetup
+breeds:
+  - small-breeds
+metro: portland
+timezone: America/Los_Angeles
+home_geo:
+  lat: 45.5152
+  lng: -122.6784
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/the-portland-dog-lovers-meetup-group/events/ical/
+    notes: "PeeWees, Toys, Minis & Small Dogs subgroup of the Portland Dog-Lovers Meetup."

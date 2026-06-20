@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research (Meetup sweep). Active, recurring
+# small-dog social (4k+ members, twice weekly); Shih Tzu welcome. Token-free iCal.
+id: denver-small-dog-social
+name: Denver Small Dog Social
+breeds:
+  - small-breeds
+metro: denver
+timezone: America/Denver
+home_geo:
+  lat: 39.7392
+  lng: -104.9903
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/denversmalldogsocial/events/ical/

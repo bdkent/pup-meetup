@@ -1,0 +1,16 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Austin/Cedar
+# Park small & toy dog group; recurring 4th Saturdays, events scheduled into 2027.
+# Token-free iCal.
+id: austin-chi-amigos
+name: The Chi Amigos
+breeds:
+  - small-breeds
+metro: austin
+timezone: America/Chicago
+home_geo:
+  lat: 30.5052
+  lng: -97.8203
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/thechiamigos/events/ical/

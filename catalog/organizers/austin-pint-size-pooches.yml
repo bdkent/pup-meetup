@@ -1,0 +1,16 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Austin
+# small-dog group (under 15 lb; Shih Tzu fits), recurring 4th Saturdays.
+# Token-free iCal.
+id: austin-pint-size-pooches
+name: Pint Size Pooches ATX
+breeds:
+  - small-breeds
+metro: austin
+timezone: America/Chicago
+home_geo:
+  lat: 30.2672
+  lng: -97.7431
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/psp-atx/events/ical/

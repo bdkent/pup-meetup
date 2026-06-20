@@ -1,0 +1,19 @@
+# Added 2026-06-20 from organizer research. Wiggle Zone (Scottsdale/Phoenix dog
+# daycare) hosts breed-specific Shih Tzu meetups. Directory link only for now —
+# the IG is mostly daycare content, so we avoid spending vision on it until flyer
+# cadence is confirmed. (An Eventbrite organizer page would be the better feed.)
+id: phoenix-wiggle-zone
+name: Wiggle Zone Shih Tzu Meetup
+breeds:
+  - shih-tzu
+metro: phoenix
+timezone: America/Phoenix
+home_geo:
+  lat: 33.4484
+  lng: -112.0740
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: wigglezonedogdaycare
+    enabled: false
+    notes: Daycare account hosting Shih Tzu meetups; directory link only until flyer cadence is confirmed.

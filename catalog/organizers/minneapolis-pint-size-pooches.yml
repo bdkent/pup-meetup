@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Twin Cities
+# small-dog group (under 15 lb; Shih Tzu fits). Valid iCal but no events scheduled
+# at recon — will auto-surface when the organizer posts. Token-free.
+id: minneapolis-pint-size-pooches
+name: Pint Size Pooches (Minneapolis)
+breeds:
+  - small-breeds
+metro: minneapolis
+timezone: America/Chicago
+home_geo:
+  lat: 44.9778
+  lng: -93.2650
+poll_interval: weekly
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/pintsizepooches/events/ical/
+    notes: Valid feed, 0 upcoming events at recon (2026-06); populates when scheduled.

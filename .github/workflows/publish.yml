@@ -8,7 +8,7 @@ name: Publish
 
 on:
   schedule:
-    - cron: "0 11 * * *" # daily ~11:00 UTC
+    - cron: "0 11 */3 * *" # every ~3 days at 11:00 UTC (Apify cost control)
   workflow_dispatch:
     inputs:
       max_posts:

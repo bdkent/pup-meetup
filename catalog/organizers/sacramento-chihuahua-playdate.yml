@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research (Meetup slug verified). Sacramento
+# small-dog playdate (dogs under 20 lb; Shih Tzu fits). Token-free iCal.
+id: sacramento-chihuahua-playdate
+name: Sacramento Chihuahua Playdate
+breeds:
+  - small-breeds
+metro: sacramento
+timezone: America/Los_Angeles
+home_geo:
+  lat: 38.5816
+  lng: -121.4944
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/sacramento-chihuahua-playdate/events/ical/

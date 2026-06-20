@@ -130,6 +130,12 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   // Fresh output dir
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
+
+  // Custom domain for GitHub Pages. The CNAME file MUST ship inside the deployed
+  // artifact — an Actions-based Pages deploy clears the custom domain on every
+  // run without it (Settings alone isn't enough). Keeps pup-meetup.com bound to
+  // this build. Inert locally and for the demo (only the deployed dist matters).
+  await writeFile(join(outDir, 'CNAME'), 'pup-meetup.com\n');
   const opts = { now };
   let pages = 0;
   const emit = async (rel, html) => { await writePage(outDir, rel, html); pages++; };
@@ -143,9 +149,25 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
     breeds: [...breeds].sort(), metros: [...metros].sort(),
   }));
 
+  // Metro centroids for the organizers map: average cataloged home_geo per metro,
+  // falling back to event coordinates for metros with no cataloged geo (e.g. demo).
+  const metroPoints = (() => {
+    const add = (bag, m, lat, lng) => {
+      if (m && lat != null && lng != null) { (bag[m] ??= { la: 0, lo: 0, n: 0 }); bag[m].la += lat; bag[m].lo += lng; bag[m].n++; }
+    };
+    const out = {};
+    const cat = {};
+    for (const o of catalog) if (o.home_geo) add(cat, o.metro, o.home_geo.lat, o.home_geo.lng);
+    for (const [m, a] of Object.entries(cat)) out[m] = { lat: a.la / a.n, lng: a.lo / a.n };
+    const evb = {};
+    for (const ev of events) if (!out[ev.metro]) add(evb, ev.metro, ev.location?.lat, ev.location?.lng);
+    for (const [m, a] of Object.entries(evb)) out[m] = { lat: a.la / a.n, lng: a.lo / a.n };
+    return out;
+  })();
+
   // organizers directory + static About / Get-listed pages (top-nav links)
   const sortedDir = dirArr.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  await emit('organizers.html', R.renderOrganizersPage(sortedDir, '', { metroLabels }));
+  await emit('organizers.html', R.renderOrganizersPage(sortedDir, '', { metroLabels, metroPoints }));
   await emit('about.html', R.renderAboutPage('', opts));
   await emit('get-listed.html', R.renderGetListedPage('', opts));
 

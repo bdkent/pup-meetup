@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research. Twin Cities Shih Tzu rescue hosting
+# monthly "Nice To Meet Tzu" meet-and-greets. Posts on Facebook (no
+# machine-readable feed yet) — directory link only, no ingestion cost.
+id: northstar-shih-tzu-rescue
+name: NorthStar Shih Tzu Rescue
+breeds:
+  - shih-tzu
+metro: minneapolis
+timezone: America/Chicago
+home_geo:
+  lat: 44.9778
+  lng: -93.2650
+poll_interval: weekly
+sources:
+  - type: facebook_page
+    url: https://www.facebook.com/NorthStarShihTzuRescue
+    notes: Monthly meet-and-greets announced on Facebook; directory link until a feed exists.

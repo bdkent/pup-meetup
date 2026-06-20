@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research (Instagram sweep). Breed-specific
+# Philadelphia Shih Tzu meetup organizer; recurring, press-covered.
+id: philly-shih-tzu
+name: Philly Shih Tzus
+breeds:
+  - shih-tzu
+metro: philadelphia
+timezone: America/New_York
+home_geo:
+  lat: 39.9526
+  lng: -75.1652
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: philly_shihtzus

@@ -1,0 +1,17 @@
+# Added 2026-06-20 from organizer research. Metro Detroit Shih Tzu / Lhasa Apso
+# rescue with recurring meet-and-greets, announced on Facebook/Instagram.
+# Directory link only (no machine-readable feed yet), no ingestion cost.
+id: lahpstr-shih-tzu-rescue
+name: Lend A Helping Paw Shih Tzu Rescue
+breeds:
+  - shih-tzu
+metro: detroit
+timezone: America/Detroit
+home_geo:
+  lat: 42.3314
+  lng: -83.0458
+poll_interval: weekly
+sources:
+  - type: facebook_page
+    url: https://www.facebook.com/LAHPSTR
+    notes: Meet-and-greets announced on Facebook/Instagram; directory link until a feed exists.

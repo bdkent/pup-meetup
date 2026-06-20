@@ -1,0 +1,16 @@
+# Added 2026-06-20 from organizer research. Alexandria / DC-metro small-dog group
+# (dogs under 15 lb; Shih Tzu fits). Token-free iCal; cadence to verify on ingest.
+id: dc-small-dog-playgroup
+name: DC Small Dog Playgroup (Alexandria)
+breeds:
+  - small-breeds
+metro: dc
+timezone: America/New_York
+home_geo:
+  lat: 38.8048
+  lng: -77.0469
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/small-dog/events/ical/
+    notes: No active organizer listed at recon; verify it stays live.

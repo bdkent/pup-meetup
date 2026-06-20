@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research. Greater-Boston small-dog group (dogs
+# 25 lb and under; Shih Tzu fits). Token-free iCal.
+id: boston-extra-small-dogs
+name: Extra Small Dogs of Massachusetts
+breeds:
+  - small-breeds
+metro: boston
+timezone: America/New_York
+home_geo:
+  lat: 42.3601
+  lng: -71.0589
+poll_interval: daily
+sources:
+  - type: meetup_ics
+    url: https://www.meetup.com/extra-small-dogs-meetup/events/ical/

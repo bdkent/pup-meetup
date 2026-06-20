@@ -1,0 +1,19 @@
+# Added 2026-06-20 from organizer research. San Diego Shih Tzu scene promoted by
+# @bentley.boy_shihtzu (large account). Directory link only for now (enabled:false)
+# — it's a high-volume influencer feed, so we don't spend vision on it until we
+# confirm it posts meetup flyers regularly.
+id: san-diego-shih-tzu
+name: San Diego Shih Tzu Meetup
+breeds:
+  - shih-tzu
+metro: san-diego
+timezone: America/Los_Angeles
+home_geo:
+  lat: 32.7157
+  lng: -117.1611
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: bentley.boy_shihtzu
+    enabled: false
+    notes: Influencer feed; directory link only until meetup-flyer cadence is confirmed.

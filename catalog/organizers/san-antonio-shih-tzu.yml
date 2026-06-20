@@ -1,0 +1,15 @@
+# Added 2026-06-20 from organizer research. Grassroots San Antonio Shih Tzu
+# organizer on Instagram; breed-specific.
+id: san-antonio-shih-tzu
+name: San Antonio Shih Tzus
+breeds:
+  - shih-tzu
+metro: san-antonio
+timezone: America/Chicago
+home_geo:
+  lat: 29.4252
+  lng: -98.4946
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: sanantonioshihtzus
