@@ -1,0 +1,17 @@
+# Real organizer from 2026-06 recon. "Chicago Shih Tzus" (@chicagoshihtzugang)
+# runs Shih Tzu meetups in Chicago, announced via Instagram (e.g. their "3rd Shih
+# Tzu meetup" post). `instagram` source: dormant until APIFY_TOKEN is set; with a
+# token, posts are fetched -> classified -> extracted to occurrences.
+id: chicago-shih-tzu-gang
+name: Chicago Shih Tzus
+breeds:
+  - shih-tzu
+metro: chicago
+timezone: America/Chicago
+home_geo:
+  lat: 41.8781
+  lng: -87.6298
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: chicagoshihtzugang

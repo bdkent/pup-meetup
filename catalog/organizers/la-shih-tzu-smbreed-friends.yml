@@ -1,0 +1,18 @@
+# Real organizer from 2026-06 recon. "LA ShihTzu & SmBreed Friends" is a second
+# Los Angeles Shih Tzu / small-breed meetup community on Instagram (distinct from
+# Little Lion Social Club). If the two turn out to organize the same events,
+# cross-organizer dedup (a known future step) will collapse the duplicates.
+# `instagram` source: dormant until APIFY_TOKEN is set.
+id: la-shih-tzu-smbreed-friends
+name: LA ShihTzu & SmBreed Friends
+breeds:
+  - shih-tzu
+metro: los-angeles
+timezone: America/Los_Angeles
+home_geo:
+  lat: 34.0522
+  lng: -118.2437
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: lashihtzusmbreedfriends

@@ -1,0 +1,17 @@
+# Real organizer from 2026-06 recon. "Little Lion Social Club LA" runs monthly
+# Shih Tzu + small-breed meetups in Los Angeles, announced via Instagram. Like
+# the NYC entry, this is an `instagram` source: ingest skips it unless
+# APIFY_TOKEN is set; with a token, posts are fetched -> classified -> extracted.
+id: la-little-lion-social-club
+name: Little Lion Social Club LA
+breeds:
+  - shih-tzu
+metro: los-angeles
+timezone: America/Los_Angeles
+home_geo:
+  lat: 34.0522
+  lng: -118.2437
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: littlelionsocialla
