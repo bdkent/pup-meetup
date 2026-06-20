@@ -136,12 +136,18 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
 
   const dirArr = [...directory.values()];
 
-  // index (with the community directory)
+  // index — the map + upcoming list (the community directory now lives on its
+  // own /organizers page, linked from the top nav).
   await emit('index.html', R.renderIndexPage(events, {
     demo, pairs: pairsArr, metroLabels, now,
     breeds: [...breeds].sort(), metros: [...metros].sort(),
-    directory: dirArr.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
   }));
+
+  // organizers directory + static About / Get-listed pages (top-nav links)
+  const sortedDir = dirArr.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  await emit('organizers.html', R.renderOrganizersPage(sortedDir, '', { metroLabels }));
+  await emit('about.html', R.renderAboutPage('', opts));
+  await emit('get-listed.html', R.renderGetListedPage('', opts));
 
   // events (+ ics)
   for (const ev of events) {

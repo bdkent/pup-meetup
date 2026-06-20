@@ -74,12 +74,48 @@ test('renders an organizer directory so cataloged communities are reachable with
     assert.match(la, /No dates yet/, 'event-less org shows a follow CTA');
     assert.doesNotMatch(la, /<script/i, 'directory pages stay zero-JS');
 
-    // The index has the directory and the LA option is selectable even with no
-    // LA events.
+    // The community directory lives on its own /organizers page, linked from the
+    // top nav (it used to be buried at the bottom of the index).
+    assert.ok(await exists(join(out, 'organizers.html')), 'organizers page');
+    const orgs = await readFile(join(out, 'organizers.html'), 'utf8');
+    assert.match(orgs, /Communities we're tracking/);
+    assert.match(orgs, /org\/la-little-lion-social-club\.html/);
+    assert.match(orgs, /get-listed\.html/, 'organizers page CTAs to get-listed');
+
+    // The index no longer carries the directory, but links to it from the nav,
+    // and the LA option is still selectable even with no LA events.
     const index = await readFile(join(out, 'index.html'), 'utf8');
-    assert.match(index, /Communities we're tracking/);
-    assert.match(index, /org\/la-little-lion-social-club\.html/);
+    assert.doesNotMatch(index, /Communities we're tracking/, 'directory moved off the index');
+    assert.match(index, /href="organizers\.html"/, 'index nav links to organizers');
+    assert.match(index, /href="about\.html"/, 'index nav links to about');
     assert.match(index, /<option value="los-angeles">/, 'event-less metro is in the picker');
+  } finally {
+    await rm(out, { recursive: true, force: true });
+  }
+});
+
+test('emits About + Get-listed pages, reachable from the nav, and zero-JS', async () => {
+  const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
+  try {
+    await buildSite({ demo: false, now, outDir: out });
+
+    assert.ok(await exists(join(out, 'about.html')), 'about page');
+    assert.ok(await exists(join(out, 'get-listed.html')), 'get-listed page');
+
+    const about = await readFile(join(out, 'about.html'), 'utf8');
+    assert.match(about, /About pup-meetup/);
+    assert.match(about, /always confirm/i, 'about repeats the confirm-at-source safety message');
+    assert.doesNotMatch(about, /<script/i, 'static pages stay zero-JS');
+
+    const listed = await readFile(join(out, 'get-listed.html'), 'utf8');
+    assert.match(listed, /Get your community listed/);
+    assert.match(listed, /github\.com\/bdkent\/pup-meetup\/issues/, 'links to a submission channel');
+    assert.doesNotMatch(listed, /<script/i);
+
+    // Every page carries the same nav (check a deep subpage uses ../ links).
+    const breed = await readFile(join(out, 'breed/shih-tzu.html'), 'utf8');
+    assert.match(breed, /href="\.\.\/organizers\.html"/, 'subpage nav links up to organizers');
+    assert.match(breed, /href="\.\.\/get-listed\.html"/, 'subpage nav links up to get-listed');
   } finally {
     await rm(out, { recursive: true, force: true });
   }

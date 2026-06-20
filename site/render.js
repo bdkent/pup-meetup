@@ -11,20 +11,25 @@
 
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const REPO_URL = 'https://github.com/bdkent/pup-meetup';
+const SUBMIT_URL = 'https://github.com/bdkent/pup-meetup/issues/new?title=List%20my%20community&body=Community%20name%3A%0ACity%2Fmetro%3A%0ABreed(s)%3A%0APublic%20link(s)%20(Instagram%2C%20Meetup%2C%20Eventbrite%2C%20etc.)%3A';
 
 export const CSS = `
 :root{--fg:#1c1c1e;--muted:#6b6b70;--line:#e6e6ea;--accent:#7c4dff;--bg:#fafafb;--chip:#f0ecff}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--fg);background:var(--bg)}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.topbar{padding:12px 20px;border-bottom:1px solid var(--line);background:#fff;font-weight:600}
-.topbar a{color:var(--fg)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px 24px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--line);background:#fff}
+.topbar .brand{font-weight:700;font-size:16px;color:var(--fg)}
+.topbar nav{display:flex;gap:18px;flex-wrap:wrap}
+.topbar nav a{color:var(--muted);font-weight:500;font-size:14px}
+.topbar nav a:hover,.topbar nav a.active{color:var(--accent);text-decoration:none}
 header.app{padding:18px 20px;border-bottom:1px solid var(--line);background:#fff}
 header.app h1{margin:0;font-size:20px}header.app h1 small{color:var(--muted);font-weight:400;font-size:14px}
 .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .controls select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
 .controls button{padding:7px 14px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;font-size:14px;cursor:pointer}
-main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 122px)}
+main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 166px)}
 #list{overflow-y:auto;padding:16px}
 .map{height:100%}
 .wrap{max-width:880px;margin:0 auto;padding:20px}
@@ -53,6 +58,16 @@ main.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 122px)
 .detail h1{font-size:24px;margin:.2em 0}.detail .when{font-size:17px;font-weight:600}
 .detail .desc{white-space:pre-wrap;color:#333;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
 .demo-banner{background:#fff7e6;border-bottom:1px solid #ffe1a8;color:#8a6d3b;padding:7px 20px;font-size:13px}
+.prose{max-width:740px}
+.prose h1{font-size:26px;margin:.1em 0 .5em}
+.prose h2{font-size:18px;margin:1.5em 0 .4em}
+.prose p,.prose li{color:#333}
+.prose ul,.prose ol{padding-left:22px}
+.prose li{margin:6px 0}
+.lede{font-size:17px;color:#333}
+.cta{display:inline-block;margin:6px 0;padding:10px 16px;background:var(--accent);color:#fff;border-radius:8px;font-weight:600}
+.cta:hover{text-decoration:none;opacity:.92}
+.callout{margin:18px 0;padding:12px 14px;border:1px solid #ffe1a8;background:#fff7e6;color:#8a6d3b;border-radius:10px;font-size:14px}
 @media (max-width:760px){main.split{grid-template-columns:1fr;height:auto}main.split .map{height:48vh}}
 `;
 
@@ -88,6 +103,9 @@ export const orgUrl = (b, id) => `${b}org/${safeId(id)}.html`;
 export const breedUrl = (b, slug) => `${b}breed/${safeId(slug)}.html`;
 export const metroUrl = (b, slug) => `${b}metro/${safeId(slug)}.html`;
 export const findUrl = (b, breed, metro) => `${b}find/${safeId(breed)}__${safeId(metro)}.html`;
+export const organizersUrl = (b) => `${b}organizers.html`;
+export const aboutUrl = (b) => `${b}about.html`;
+export const getListedUrl = (b) => `${b}get-listed.html`;
 
 const chip = (label, href) => `<a class="tag" href="${href}">${esc(label)}</a>`;
 const avatar = (name) => `<span class="avatar">${esc((String(name || '?').trim()[0] || '?').toUpperCase())}</span>`;
@@ -125,23 +143,27 @@ function communitiesSection(orgs, base, label) {
   return `<div class="group-label">${esc(label)}</div>${orgs.map((o) => orgCardHtml(o, base)).join('')}`;
 }
 
-// The full community directory for the index, grouped by city. This is what
-// makes the site useful before any events are parsed (e.g. Instagram-only
-// organizers): every cataloged community is visible with a link to follow.
-function directoryHtml(directory, metroLabels) {
-  if (!directory || !directory.length) return '';
+// The full community directory, grouped by city. This is its own page (linked
+// from the top nav) so the site is useful before any events are parsed (e.g.
+// Instagram-only organizers): every cataloged community is visible with a link
+// to follow, plus a prominent "get listed" CTA for new organizers.
+export function renderOrganizersPage(directory, base, { metroLabels = {} } = {}) {
   const byMetro = {};
-  for (const o of directory) (byMetro[o.metro || 'other'] ??= []).push(o);
+  for (const o of directory || []) (byMetro[o.metro || 'other'] ??= []).push(o);
   const metros = Object.keys(byMetro).sort();
   const blocks = metros.map((m) => {
     const label = (metroLabels && metroLabels[m]) || humanizeMetro(m);
-    return `<div class="group-label"><a href="${metroUrl('', m)}">${esc(label)}</a></div>` + byMetro[m].map((o) => orgCardHtml(o, '')).join('');
+    const heading = m === 'other' ? esc(label) : `<a href="${metroUrl(base, m)}">${esc(label)}</a>`;
+    return `<div class="group-label">${heading}</div>` + byMetro[m].map((o) => orgCardHtml(o, base)).join('');
   }).join('');
-  return `<section class="wrap directory">
-    <h2 style="font-size:18px;margin:0 0 4px">Communities we're tracking</h2>
-    <p class="count">${directory.length} organizer${directory.length === 1 ? '' : 's'} across ${metros.length} cit${metros.length === 1 ? 'y' : 'ies'} — follow them for meetup announcements.</p>
-    ${blocks}
-  </section>`;
+  const count = (directory || []).length;
+  const body = `${topbar(base, 'organizers')}<div class="wrap">
+    <h1 style="font-size:24px;margin:.1em 0 6px">Communities we're tracking</h1>
+    <p class="count">${count} organizer${count === 1 ? '' : 's'} across ${metros.length} cit${metros.length === 1 ? 'y' : 'ies'} — follow them for meetup announcements.</p>
+    <p><a class="cta" href="${getListedUrl(base)}">＋ Get your community listed</a></p>
+    ${blocks || '<p class="empty">No communities yet — check back soon.</p>'}
+  </div>`;
+  return pageLayout({ title: 'Organizers & communities — pup-meetup', description: 'Dog-meetup organizers and communities we track, grouped by city.', body });
 }
 
 function mapsLink(ev) {
@@ -205,7 +227,23 @@ ${leaflet ? `<link rel="stylesheet" href="${LEAFLET_CSS}" crossorigin=""/>` : ''
 </head><body class="${bodyClass}">${body}</body></html>`;
 }
 
-const topbar = (base) => `<header class="topbar"><a href="${homeUrl(base)}">🐾 pup-meetup</a></header>`;
+// Site-wide nav. `active` highlights the current section ('' | 'organizers' |
+// 'about' | 'get-listed'). Present on every page so the directory, About, and
+// "Get listed" pages are reachable from anywhere — not buried at the bottom.
+const NAV_LINKS = [
+  ['', 'Meetups', homeUrl],
+  ['organizers', 'Organizers', organizersUrl],
+  ['about', 'About', aboutUrl],
+  ['get-listed', 'Get listed', getListedUrl],
+];
+function navHtml(base, active = '') {
+  return NAV_LINKS.map(([key, label, url]) =>
+    `<a href="${url(base)}"${key === active ? ' class="active"' : ''}>${esc(label)}</a>`).join('');
+}
+const topbar = (base, active = '') => `<header class="topbar">
+  <a class="brand" href="${homeUrl(base)}">🐾 pup-meetup</a>
+  <nav>${navHtml(base, active)}</nav>
+</header>`;
 
 // ---------- ICS / Google Calendar ----------
 const icsDt = (iso) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -245,7 +283,7 @@ bs.addEventListener('change',fillMetros);
 document.getElementById('go').addEventListener('click',go);
 `;
 
-export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels = {}, now = new Date(), breeds: breedFacet, metros: metroFacet, directory = [] } = {}) {
+export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels = {}, now = new Date(), breeds: breedFacet, metros: metroFacet } = {}) {
   const breeds = (breedFacet && breedFacet.length ? [...breedFacet] : [...new Set(events.flatMap((e) => e.breeds || []))]).sort();
   const metros = (metroFacet && metroFacet.length ? [...metroFacet] : Object.keys(metroLabels)).sort();
   const opt = (slug, label) => `<option value="${esc(slug)}">${esc(label)}</option>`;
@@ -255,7 +293,7 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
     <div><span class="browse-label">Browse cities</span>${metros.map((m) => chip(metroLabels[m] || humanizeMetro(m), metroUrl('', m))).join('')}</div>
   </div>`;
 
-  const body = `<header class="app">
+  const body = `${topbar('', '')}<header class="app">
     <h1>🐾 pup-meetup <small>— upcoming dog meetups</small></h1>
     <div class="controls">
       <select id="breed"><option value="">Any breed</option>${breeds.map((b) => opt(b, humanizeBreed(b))).join('')}</select>
@@ -268,7 +306,6 @@ export function renderIndexPage(events, { demo = false, pairs = {}, metroLabels 
     <section id="list"><p class="count">${events.length} upcoming meetup${events.length === 1 ? '' : 's'}</p>${browse}${eventListHtml(events, '', { now })}</section>
     <div id="map" class="map"></div>
   </main>
-  ${directoryHtml(directory, metroLabels)}
   <script src="${LEAFLET_JS}"></script>
   <script>
   (function(){var pts=${jsonScript(points)};var map=L.map('map');
@@ -377,6 +414,63 @@ export function renderEventPage(ev, base, { now = new Date() } = {}) {
     ${desc ? `<div class="desc">${esc(desc)}</div>` : ''}
   </div>`;
   return pageLayout({ title: `${ev.title} — pup-meetup`, description: `${ev.title} on ${fmtDate(ev.start, ev.timezone)}.`, body });
+}
+
+export function renderAboutPage(base, { now = new Date() } = {}) {
+  const body = `${topbar(base, 'about')}<div class="wrap prose">
+    <h1>About pup-meetup</h1>
+    <p class="lede">A free, automatically-updated directory of breed-specific dog meetups — starting with Shih&nbsp;Tzu.</p>
+    <p>Dog meetups are scattered across a dozen platforms — an Instagram account here, a Meetup group there, an Eventbrite somewhere else. pup-meetup pulls them into one place so you can find what's coming up near you, browse by breed and city, and see it all on a map.</p>
+
+    <h2>How it works</h2>
+    <p>We watch the public sources that organizers already post to — Instagram accounts, Meetup groups, Eventbrite pages — and pull out the event details automatically. For Instagram, that often means reading the flyer <em>image</em>, since the date, time, and venue usually live on the graphic rather than in the caption. Everything refreshes on its own, so the site stays current without anyone updating it by hand.</p>
+
+    <h2>Always confirm before you go</h2>
+    <p>Listings here are auto-collected and can be imperfect. We're careful with locations: we <strong>never drop a precise map pin unless we're confident of the exact spot</strong> — when we're unsure, the map shows a shaded general area instead of a marker, and the event page says so. Treat every listing as a pointer back to the organizer, and <strong>always confirm the date, time, and exact location at the original source</strong> before heading out.</p>
+
+    <h2>Free &amp; open</h2>
+    <p>This is a hobby project — no ads, no tracking, no accounts. The code is open source on <a href="${REPO_URL}">GitHub</a>; spot something wrong? <a href="${REPO_URL}/issues/new">Open an issue</a>.</p>
+
+    <h2>Run a dog-meetup community?</h2>
+    <p>We'd love to include you. <a href="${getListedUrl(base)}">Here's how to get listed →</a></p>
+  </div>`;
+  return pageLayout({ title: 'About — pup-meetup', description: 'What pup-meetup is, how it collects dog meetups, and why you should always confirm at the source.', body });
+}
+
+export function renderGetListedPage(base, { now = new Date() } = {}) {
+  const body = `${topbar(base, 'get-listed')}<div class="wrap prose">
+    <h1>Get your community listed</h1>
+    <p class="lede">Run a dog-meetup community? We'd love to add you to pup-meetup. It's free, and it takes one message.</p>
+    <p><a class="cta" href="${SUBMIT_URL}">＋ Submit your community on GitHub</a></p>
+
+    <h2>What we need</h2>
+    <p>A <strong>public source we can read automatically</strong> — pick whichever you already use:</p>
+    <ul>
+      <li>A <strong>public Instagram</strong> account (we read your flyer images for the date, time, and venue)</li>
+      <li>A <strong>Meetup</strong> group with a public calendar</li>
+      <li>An <strong>Eventbrite</strong> organizer page</li>
+      <li>Any website with an <strong>events RSS feed</strong></li>
+    </ul>
+
+    <h2>How to submit</h2>
+    <p><a href="${SUBMIT_URL}">Open a GitHub issue</a> (no account info needed beyond GitHub) and tell us:</p>
+    <ol>
+      <li>Your community / organizer name</li>
+      <li>City or metro area</li>
+      <li>Breed(s) — we're focused on Shih&nbsp;Tzu first, but tell us yours</li>
+      <li>The public link(s) from the list above</li>
+    </ol>
+
+    <h2>Tips so your events show up accurately</h2>
+    <ul>
+      <li>Put the <strong>date, start time, and exact venue right on the flyer image</strong> — that's what we read.</li>
+      <li>Use a <strong>real, specific address</strong>. We never guess: a vague "DM for location" or "TBD" won't get a map pin.</li>
+      <li>Post <strong>upcoming</strong> dates — we only list events in the future.</li>
+    </ul>
+
+    <div class="callout">📍 Location safety: we will never place a precise pin unless we're sure of the spot, because we never want anyone driving to the wrong place. Help us out with clear, accurate addresses.</div>
+  </div>`;
+  return pageLayout({ title: 'Get listed — pup-meetup', description: 'How dog-meetup organizers can get their community listed on pup-meetup.', body });
 }
 
 function labelForType(type) {
