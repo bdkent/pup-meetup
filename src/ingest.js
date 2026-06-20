@@ -19,9 +19,10 @@ import { loadCatalog } from './catalog.js';
 import { fetchAndParseMeetupIcs } from './sources/meetup-ics.js';
 import { fetchAndExtractJsonLd } from './sources/jsonld.js';
 import { fetchAndParseRss } from './sources/rss.js';
-import { pollInstagram } from './sources/instagram.js';
+import { pollInstagram, postsToOccurrencesWithVision } from './sources/instagram.js';
 import { loadCache, saveCache, enrichOccurrenceLocations } from './geocode.js';
 import { loadState, saveState, appendRawPosts } from './store.js';
+import { loadVisionUsage, saveVisionUsage, makeVisionBudget } from './extract/vision-budget.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
 const GEOCACHE_PATH = fileURLToPath(new URL('../data/geocache.json', import.meta.url));
@@ -44,6 +45,10 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   const geocache = await loadCache(geocachePath);
   const now = new Date();
 
+  // Vision budget: hard monthly cap so a bug can't drain the API balance.
+  const visionUsage = await loadVisionUsage();
+  const visionBudget = makeVisionBudget(visionUsage, { now });
+
   let written = 0;
   let skipped = 0;
 
@@ -63,11 +68,15 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
       if (src.enabled === false) continue;
       try {
         if (src.type === 'instagram') {
-          const { occurrences, newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now });
+          // pollInstagram advances the change-detection cursor and returns the new
+          // posts; we re-extract them vision-first (the cheap text occurrences it
+          // also returns are ignored in favour of the flyer-reading path).
+          const { newPosts, fetched } = await pollInstagram(src.handle, { organizer: org, state, now });
           stateDirty = true;
           await appendRawPosts(org.id, newPosts);
+          const occurrences = await postsToOccurrencesWithVision(newPosts, org, { now, budget: visionBudget });
           await writeOccurrences(occurrences);
-          console.error(`${org.id}: ${occurrences.length} event(s) from ${newPosts.length} new post(s) (${fetched} fetched) [instagram]`);
+          console.error(`${org.id}: ${occurrences.length} event(s) from ${newPosts.length} new post(s) (${fetched} fetched) [instagram, vision ${visionBudget.used()}/${visionBudget.cap}]`);
           continue;
         }
 
@@ -93,6 +102,7 @@ export async function runIngest({ eventsDir = EVENTS_DIR, geocachePath = GEOCACH
   }
 
   await saveCache(geocachePath, geocache);
+  await saveVisionUsage(visionUsage);
   console.error(`\nWrote ${written} occurrence file(s) to ${eventsDir}` +
     (skipped ? ` (${skipped} source(s) skipped — see notes above)` : ''));
   return { written, skipped };

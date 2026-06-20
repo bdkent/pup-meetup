@@ -8,6 +8,7 @@
 import { fetchInstagramPosts } from '../adapters/apify-instagram.js';
 import { classifyPost } from '../extract/classify.js';
 import { extractOccurrenceFromPost } from '../extract/extract-text.js';
+import { extractOccurrenceFromImage } from '../extract/extract-vision.js';
 import { getCursor, filterNewPosts, updateCursor } from '../store.js';
 
 export async function fetchAndExtractInstagram(handle, opts = {}) {
@@ -33,6 +34,50 @@ export async function pollInstagram(handle, opts = {}) {
 
   updateCursor(state, sourceKey, posts, now.toISOString());
   return { occurrences, newPosts, fetched: posts.length };
+}
+
+/**
+ * Vision-first extraction with text fallback + a monthly budget cap. Image posts
+ * go to the vision model (event date/venue usually live on the flyer image, which
+ * the caption heuristic can't read); text-only posts, over-budget posts, and
+ * vision errors fall back to the caption heuristic. Same-day occurrences merge
+ * (higher confidence wins, provenance accumulates).
+ *
+ * @param {{budget?: {canSpend: () => boolean, record: () => void}, apiKey?: string, fetchImpl?: typeof fetch}} opts
+ */
+export async function postsToOccurrencesWithVision(posts, organizer, { now = new Date(), budget, apiKey = process.env.ANTHROPIC_API_KEY, fetchImpl } = {}) {
+  const byId = new Map();
+  const add = (occ) => {
+    if (!occ) return;
+    const existing = byId.get(occ.id);
+    if (!existing) { byId.set(occ.id, occ); return; }
+    const [better, other] = occ.confidence >= existing.confidence ? [occ, existing] : [existing, occ];
+    better.sources = [...better.sources, ...other.sources];
+    byId.set(occ.id, better);
+  };
+
+  for (const post of posts) {
+    const hasImage = post.image_urls && post.image_urls.length;
+    if (hasImage) {
+      // Flyer posts: the date/venue live in the IMAGE, and the caption alone is
+      // unreliable (wrong dates + false positives — see the live probe). So image
+      // posts go to vision ONLY; if vision can't run (no key, over budget, or an
+      // API error) we SKIP rather than guess from the caption.
+      if (apiKey && (!budget || budget.canSpend())) {
+        try {
+          const { occurrence } = await extractOccurrenceFromImage(post, organizer, { now, apiKey, fetchImpl });
+          if (budget) budget.record();
+          add(occurrence);
+        } catch (err) {
+          console.error(`  vision error (${post.permalink || post.post_id}): ${err.message} — skipping (caption unreliable for flyers)`);
+        }
+      }
+      continue;
+    }
+    // Text-only posts: the caption is all there is — use the heuristic.
+    for (const occ of postsToOccurrences([post], organizer, { now })) add(occ);
+  }
+  return [...byId.values()].sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
 }
 
 /**
