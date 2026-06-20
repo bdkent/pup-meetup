@@ -478,7 +478,7 @@ export function renderFindPage(breedSlug, metroSlug, events, base, { now = new D
   return pageLayout({ title: `${bl} meetups in ${ml} — pup-meetup`, description: `Upcoming ${bl} dog meetups in ${ml}.`, body });
 }
 
-const SITE_ORIGIN = 'https://pup-meetup.com';
+export const SITE_ORIGIN = 'https://pup-meetup.com';
 
 // schema.org Event JSON-LD for an event detail page: makes events eligible for
 // search rich results and gives crawlers/AI a clean, *citable* machine-readable

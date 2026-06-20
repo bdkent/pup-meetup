@@ -138,7 +138,8 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
   await writeFile(join(outDir, 'CNAME'), 'pup-meetup.com\n');
   const opts = { now };
   let pages = 0;
-  const emit = async (rel, html) => { await writePage(outDir, rel, html); pages++; };
+  const urls = []; // every emitted .html page, for the sitemap
+  const emit = async (rel, html) => { await writePage(outDir, rel, html); pages++; if (rel.endsWith('.html')) urls.push(rel); };
 
   const dirArr = [...directory.values()];
 
@@ -205,6 +206,17 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
       await emit(`find/${R.safeId(b)}__${R.safeId(m)}.html`, R.renderFindPage(b, m, evs, '../', { now, orgs }));
     }
   }
+
+  // SEO/discovery: a sitemap of every page + a permissive robots.txt that
+  // WELCOMES all crawlers (including AI) and points to the sitemap — we want to
+  // be indexed and cited, not blocked. Absolute canonical URLs.
+  const xmlLoc = (rel) => `${R.SITE_ORIGIN}/${rel === 'index.html' ? '' : rel}`.replace(/&/g, '&amp;');
+  const sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    + urls.slice().sort().map((rel) => `  <url><loc>${xmlLoc(rel)}</loc></url>`).join('\n')
+    + '\n</urlset>\n';
+  await writeFile(join(outDir, 'sitemap.xml'), sitemap);
+  await writeFile(join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${R.SITE_ORIGIN}/sitemap.xml\n`);
 
   return { count: events.length, pages, outDir };
 }

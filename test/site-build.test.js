@@ -136,6 +136,27 @@ test('emits About + Get-listed pages, reachable from the nav, and zero-JS', asyn
   }
 });
 
+test('emits robots.txt + sitemap that welcome crawlers and list the pages', async () => {
+  const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
+  try {
+    await buildSite({ demo: true, now, outDir: out });
+
+    const robots = await readFile(join(out, 'robots.txt'), 'utf8');
+    assert.match(robots, /User-agent: \*/);
+    assert.match(robots, /Allow: \//);
+    assert.match(robots, /Sitemap: https:\/\/pup-meetup\.com\/sitemap\.xml/);
+    assert.doesNotMatch(robots, /Disallow:/, 'does not block any crawler (incl. AI)');
+
+    const sm = await readFile(join(out, 'sitemap.xml'), 'utf8');
+    assert.match(sm, /<urlset/);
+    assert.match(sm, /<loc>https:\/\/pup-meetup\.com\/<\/loc>/, 'home page (root) listed');
+    assert.match(sm, /<loc>https:\/\/pup-meetup\.com\/breed\/shih-tzu\.html<\/loc>/, 'a subpage listed');
+    assert.doesNotMatch(sm, /CNAME/, 'non-page artifacts excluded');
+  } finally {
+    await rm(out, { recursive: true, force: true });
+  }
+});
+
 test('combo pages are generated only for breed×metro pairs that exist', async () => {
   const out = await mkdtemp(join(tmpdir(), 'pup-site-'));
   try {
