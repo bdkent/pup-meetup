@@ -39,5 +39,9 @@
   "7654 pocket road, sacramento, ca": {
     "lat": 38.4791164,
     "lng": -121.5386986
+  },
+  "1766 forssa way, eagan, mn": {
+    "lat": 44.7851193,
+    "lng": -93.1913095
   }
 }
