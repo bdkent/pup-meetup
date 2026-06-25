@@ -691,5 +691,23 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3725950451645825071": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "3897717110968247854": {
+    "is_event": true,
+    "title": "Philly Shih Tzus Meetup at Uptown Dogs",
+    "date": "2024-07-26",
+    "time": "11:00",
+    "venue": "Uptown Dogs",
+    "address": "1031 S 3rd St, Philadelphia, PA 19147",
+    "confidence": 0.95
   }
 }
