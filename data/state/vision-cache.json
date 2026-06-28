@@ -709,5 +709,14 @@
     "venue": "Uptown Dogs",
     "address": "1031 S 3rd St, Philadelphia, PA 19147",
     "confidence": 0.95
+  },
+  "3928495295450938073": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
   }
 }

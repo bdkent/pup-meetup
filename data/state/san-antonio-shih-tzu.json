@@ -2,13 +2,14 @@
   "organizer_id": "san-antonio-shih-tzu",
   "sources": {
     "instagram:sanantonioshihtzus": {
-      "last_polled": "2026-06-25T11:52:37.160Z",
+      "last_polled": "2026-06-28T11:32:36.158Z",
       "seen_ids": [
         "2512069956095890539",
         "2519412978768869162",
         "2666592213819762847",
         "2659783314815509184",
-        "2519413757499989328"
+        "2519413757499989328",
+        "https://www.instagram.com/sanantonioshihtzus/"
       ]
     }
   }
