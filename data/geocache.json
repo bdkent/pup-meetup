@@ -47,5 +47,13 @@
   ", denver, co": {
     "lat": 39.7392364,
     "lng": -104.984862
+  },
+  "1 merrymount parkway, quincy, ma": {
+    "lat": 42.2630349,
+    "lng": -71.0045558
+  },
+  "e hampden ave & s dayton st, denver, co": {
+    "lat": 39.6529214,
+    "lng": -104.8750221
   }
 }
