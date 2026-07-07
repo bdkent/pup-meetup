@@ -55,5 +55,9 @@
   "e hampden ave & s dayton st, denver, co": {
     "lat": 39.6529214,
     "lng": -104.8750221
+  },
+  "7th ave ne, st. petersburg, fl": {
+    "lat": 27.779456,
+    "lng": -82.631119
   }
 }

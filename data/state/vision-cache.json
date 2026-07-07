@@ -736,5 +736,14 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3934291318863133452": {
+    "is_event": true,
+    "title": "Land of the Ewoks: Boston Edition",
+    "date": "2026-09-13",
+    "time": "12:00",
+    "venue": "Boston Common",
+    "address": "Boston Common, Boston, MA",
+    "confidence": 0.95
   }
 }
