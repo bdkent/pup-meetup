@@ -745,5 +745,14 @@
     "venue": "Boston Common",
     "address": "Boston Common, Boston, MA",
     "confidence": 0.95
+  },
+  "3938254507608884627": {
+    "is_event": true,
+    "title": "Philly Shih Tzus Meetup",
+    "date": "2024-09-19",
+    "time": "10:00",
+    "venue": "Schuylkill River Park — Small Dog Park Area",
+    "address": "300 S 25th St, Philadelphia, PA",
+    "confidence": 0.95
   }
 }
