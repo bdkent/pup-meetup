@@ -754,5 +754,23 @@
     "venue": "Schuylkill River Park — Small Dog Park Area",
     "address": "300 S 25th St, Philadelphia, PA",
     "confidence": 0.95
+  },
+  "3941581707122738004": {
+    "is_event": true,
+    "title": "Shih Tzus Meet Up - National Dog Day Yappy Hour",
+    "date": "2025-08-26",
+    "time": "17:00",
+    "venue": "The Logan - Philadelphia's Hotel",
+    "address": "1850 Benjamin Franklin Pkwy, Philadelphia, PA 19103",
+    "confidence": 0.95
+  },
+  "3940355406031380448": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
   }
 }
