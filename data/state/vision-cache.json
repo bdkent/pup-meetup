@@ -772,5 +772,14 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3942735617716747093": {
+    "is_event": true,
+    "title": "Los Angeles Shih Tzus Pizza Party",
+    "date": "2025-08-02",
+    "time": "17:00",
+    "venue": "Secret Pizza",
+    "address": "3501 Monterey Rd, Los Angeles, CA 90032",
+    "confidence": 0.95
   }
 }
