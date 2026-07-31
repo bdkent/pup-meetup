@@ -790,5 +790,32 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3950700806741139438": {
+    "is_event": true,
+    "title": "NYC Halloween Shih Tzu Meetup",
+    "date": "2026-10-11",
+    "time": "13:00",
+    "venue": "Socrates Sculpture Park",
+    "address": "32-01 Vernon Boulevard, Astoria, NY 11106",
+    "confidence": 0.95
+  },
+  "3952786047037300448": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3952173245063020874": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
   }
 }

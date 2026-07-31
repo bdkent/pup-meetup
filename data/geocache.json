@@ -59,5 +59,9 @@
   "7th ave ne, st. petersburg, fl": {
     "lat": 27.779456,
     "lng": -82.631119
+  },
+  "32-01 vernon boulevard, astoria, ny 11106": {
+    "lat": 40.7675211,
+    "lng": -73.936282
   }
 }
