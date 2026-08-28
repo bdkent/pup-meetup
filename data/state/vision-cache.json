@@ -880,5 +880,32 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3973308095436060227": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3973928181274437171": {
+    "is_event": true,
+    "title": "Philly Shih Tzu Meetup - Yappy Hour",
+    "date": "2026-08-26",
+    "time": null,
+    "venue": "Logan Hotel",
+    "address": null,
+    "confidence": 0.75
+  },
+  "3971626285641708484": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
   }
 }
