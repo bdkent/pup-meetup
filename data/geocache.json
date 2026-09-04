@@ -69,5 +69,13 @@
   "2801 n williams st, denver, co": {
     "lat": 39.7240377,
     "lng": -104.9658675
+  },
+  "2400 main street, walpole, ma": {
+    "lat": 42.104898,
+    "lng": -71.287205
+  },
+  "60 south st, walpole, ma": {
+    "lat": 42.1383851,
+    "lng": -71.2502586
   }
 }

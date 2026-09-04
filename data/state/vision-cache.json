@@ -916,5 +916,14 @@
     "venue": null,
     "address": null,
     "confidence": 0.95
+  },
+  "3978300268025757860": {
+    "is_event": true,
+    "title": "Philly Shih Tzus Halloween Costume Contest",
+    "date": "2024-10-24",
+    "time": "12:00",
+    "venue": "Sunset Social",
+    "address": "129 S 30th St, Philadelphia, PA 19104",
+    "confidence": 0.95
   }
 }
