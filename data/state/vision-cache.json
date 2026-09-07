@@ -925,5 +925,14 @@
     "venue": "Sunset Social",
     "address": "129 S 30th St, Philadelphia, PA 19104",
     "confidence": 0.95
+  },
+  "3978838948498951622": {
+    "is_event": true,
+    "title": "Shih Tzu Meetup",
+    "date": "2024-10-24",
+    "time": null,
+    "venue": "Regatta Grove",
+    "address": null,
+    "confidence": 0.92
   }
 }
