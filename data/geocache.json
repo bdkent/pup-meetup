@@ -81,5 +81,9 @@
   "15900 w alameda pkwy, lakewood, 80228, co": {
     "lat": 39.6837287,
     "lng": -105.1807041
+  },
+  "615 channelside drive, tampa, fl": {
+    "lat": 27.9433687,
+    "lng": -82.446999
   }
 }

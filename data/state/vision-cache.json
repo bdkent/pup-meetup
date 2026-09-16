@@ -934,5 +934,14 @@
     "venue": "Regatta Grove",
     "address": null,
     "confidence": 0.92
+  },
+  "3986956730069666880": {
+    "is_event": true,
+    "title": "NYC Halloween Shih Tzu Meetup",
+    "date": "2025-10-11",
+    "time": "13:00",
+    "venue": "Socrates Sculpture Park",
+    "address": "32-01 Vernon Boulevard, Astoria, NY 11106",
+    "confidence": 0.95
   }
 }
