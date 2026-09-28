@@ -86,5 +86,9 @@
     "lat": 27.9433687,
     "lng": -82.446999
   },
-  "6500 w lake st, st louis park, mn 55426, usa, st. louis park, mn": null
+  "6500 w lake st, st louis park, mn 55426, usa, st. louis park, mn": null,
+  "6501 s congress ave, 211, austin, tx": {
+    "lat": 30.195241,
+    "lng": -97.777408
+  }
 }
