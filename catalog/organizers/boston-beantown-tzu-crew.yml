@@ -1,0 +1,18 @@
+# Added 2026-10-01 — organizer (Hannah) reached out via the get-listed email.
+# Breed-specific Boston Shih Tzu community; meetups posted on Instagram.
+# First announced meetup: Sun Nov 1, 2026, 12–2pm at Peters Park dog park
+# (South End). home_geo is the approximate Peters Park area, used only as the
+# fallback pin when a post's address can't be geocoded.
+id: boston-beantown-tzu-crew
+name: BeanTown Tzu Crew
+breeds:
+  - shih-tzu
+metro: boston
+timezone: America/New_York
+home_geo:
+  lat: 42.3440
+  lng: -71.0660
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: beantowntzucrew
