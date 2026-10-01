@@ -11,6 +11,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadCatalog } from '../src/catalog.js';
 import * as R from './render.js';
+import * as G from './graphics.js';
 
 const EVENTS_DIR = fileURLToPath(new URL('../data/events/', import.meta.url));
 const OUT_DIR = fileURLToPath(new URL('./dist/', import.meta.url));
@@ -216,6 +217,7 @@ export async function buildSite({ now = new Date(), demo = false, outDir = OUT_D
     + urls.slice().sort().map((rel) => `  <url><loc>${xmlLoc(rel)}</loc></url>`).join('\n')
     + '\n</urlset>\n';
   await writeFile(join(outDir, 'sitemap.xml'), sitemap);
+  await writeFile(join(outDir, 'favicon.svg'), G.FAVICON_SVG);
   await writeFile(join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${R.SITE_ORIGIN}/sitemap.xml\n`);
 
   return { count: events.length, pages, outDir };

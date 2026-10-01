@@ -117,8 +117,10 @@ export const shihTzuMark = (cls = '') =>
   + '<circle cx="60" cy="25" r="4.5"/>'
   + '</g></svg>';
 
-// Inline SVG favicon (purple paw) as a data URI — no asset file, no request.
-export const FAVICON = 'data:image/svg+xml,' + encodeURIComponent(
+// SVG favicon (purple paw), emitted as /favicon.svg. Google Search only shows
+// favicons served from a real, crawlable URL — a data: URI works in browser
+// tabs but never appears in search results.
+export const FAVICON_SVG = (
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#7c4dff">'
   + '<ellipse cx="50" cy="68" rx="23" ry="19"/><ellipse cx="22" cy="45" rx="8.5" ry="11.5"/>'
   + '<ellipse cx="40" cy="30" rx="9" ry="12.5"/><ellipse cx="60" cy="30" rx="9" ry="12.5"/>'

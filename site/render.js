@@ -315,7 +315,7 @@ export function pageLayout({ title, description = '', body, bodyClass = '', leaf
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-<link rel="icon" href="${G.FAVICON}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 ${leaflet ? `<link rel="stylesheet" href="${LEAFLET_CSS}" crossorigin=""/>` : ''}
 <style>${CSS}</style>
 </head><body class="${bodyClass}">${body}${ANALYTICS}</body></html>`;
