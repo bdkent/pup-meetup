@@ -961,5 +961,23 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "3998371236283337483": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "3998373401559236936": {
+    "is_event": true,
+    "title": "BeanTown Tzu Crew First Meet Up",
+    "date": "2026-11-01",
+    "time": "12:00",
+    "venue": "Peter's Park Dog Park, South End",
+    "address": null,
+    "confidence": 0.95
   }
 }
