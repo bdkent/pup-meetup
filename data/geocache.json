@@ -91,5 +91,10 @@
     "lat": 30.195241,
     "lng": -97.777408
   },
-  "peter's park dog park, south end": null
+  "peter's park dog park, south end": null,
+  "1 premium outlet blvd, wrentham, ma 02093, usa, wrentham, ma": null,
+  "13385 holly st, thornton, co": {
+    "lat": 39.9383935,
+    "lng": -104.9220491
+  }
 }
