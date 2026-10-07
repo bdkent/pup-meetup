@@ -988,5 +988,14 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "4001428074370859839": {
+    "is_event": true,
+    "title": "NYC Shih Tzu Meetup",
+    "date": "2026-10-11",
+    "time": "13:00",
+    "venue": "Socrates Sculpture Park",
+    "address": "Astoria, NY",
+    "confidence": 0.95
   }
 }
