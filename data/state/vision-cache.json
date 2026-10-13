@@ -997,5 +997,23 @@
     "venue": "Socrates Sculpture Park",
     "address": "Astoria, NY",
     "confidence": 0.95
+  },
+  "4005896998487385346": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
+  },
+  "4006442575056297336": {
+    "is_event": true,
+    "title": "Halloween Meetup",
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.35
   }
 }
