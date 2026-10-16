@@ -100,5 +100,9 @@
   "astoria, ny": {
     "lat": 40.7720145,
     "lng": -73.9302673
+  },
+  "2101 broadway st ne, minneapolis, mn": {
+    "lat": 44.998784,
+    "lng": -93.230676
   }
 }
