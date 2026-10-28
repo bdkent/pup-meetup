@@ -1096,5 +1096,32 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "4016022345215675239": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
+  },
+  "4016492439429629326": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
+  },
+  "4017868830323185835": {
+    "is_event": true,
+    "title": "Shih Tzu Meetup",
+    "date": "2026-11-22",
+    "time": "10:00",
+    "venue": "Highline Park",
+    "address": "JFK Boulevard between 3001 and 3025 JFK, Philadelphia PA",
+    "confidence": 0.95
   }
 }
