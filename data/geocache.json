@@ -105,5 +105,9 @@
     "lat": 44.998784,
     "lng": -93.230676
   },
-  "jfk boulevard between 3001 and 3025 jfk, philadelphia pa": null
+  "jfk boulevard between 3001 and 3025 jfk, philadelphia pa": null,
+  "54th pl, denver, co": {
+    "lat": 39.7933597,
+    "lng": -104.7590368
+  }
 }
