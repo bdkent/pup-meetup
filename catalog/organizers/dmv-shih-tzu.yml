@@ -1,0 +1,20 @@
+# Added 2026-11-08 at the user's request: a DMV (DC / Maryland / Virginia) Shih
+# Tzu group found on Instagram (@dmvshihtzu). Only the handle is known so far —
+# display name and usual meetup spot unconfirmed, so home_geo is central DC; move
+# the pin if their posts show a regular park. `instagram` source: posts are
+# fetched -> classified -> extracted on the scheduled/manual Publish runs (the
+# APIFY_TOKEN + ANTHROPIC_API_KEY repo secrets); a push alone only rebuilds.
+id: dmv-shih-tzu
+name: DMV Shih Tzu
+breeds:
+  - shih-tzu
+metro: dc
+timezone: America/New_York
+home_geo:
+  lat: 38.9072
+  lng: -77.0369
+poll_interval: daily
+sources:
+  - type: instagram
+    handle: dmvshihtzu
+    notes: Display name and meetup cadence unconfirmed; verify from their posts.
