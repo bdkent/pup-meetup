@@ -1186,5 +1186,50 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "4002996238870908970": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "4004192437670111170": {
+    "is_event": true,
+    "title": "DMV Shih Tzu Meetup",
+    "date": "2026-11-01",
+    "time": "11:00",
+    "venue": "Hains Point Park – Site \"A\"",
+    "address": null,
+    "confidence": 0.95
+  },
+  "4021012873305209400": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "4021318509913271506": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.95
+  },
+  "4021633769757843713": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0.05
   }
 }
