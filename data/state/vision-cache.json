@@ -1240,5 +1240,23 @@
     "venue": null,
     "address": null,
     "confidence": 0
+  },
+  "4027639266322704281": {
+    "is_event": false,
+    "title": null,
+    "date": null,
+    "time": null,
+    "venue": null,
+    "address": null,
+    "confidence": 0
+  },
+  "4029076855511805563": {
+    "is_event": true,
+    "title": "Holiday Shih Tzu Meet Up",
+    "date": "2024-12-19",
+    "time": "12:00",
+    "venue": "Evil Genius Beer",
+    "address": "1727 N Front St, Philadelphia, PA 19122",
+    "confidence": 0.95
   }
 }
