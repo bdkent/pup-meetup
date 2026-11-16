@@ -1258,5 +1258,14 @@
     "venue": "Evil Genius Beer",
     "address": "1727 N Front St, Philadelphia, PA 19122",
     "confidence": 0.95
+  },
+  "4031864879366573286": {
+    "is_event": true,
+    "title": "April Shih Tzu Meet Up",
+    "date": "2025-04-17",
+    "time": "12:00",
+    "venue": "Interstate Draft House — Outdoor Patio",
+    "address": "1235 E Palmer St, Philadelphia, PA 19125",
+    "confidence": 0.95
   }
 }
